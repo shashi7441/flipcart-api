@@ -1,3 +1,6 @@
-const routes = require("../routes/routes");
+const routes = require("./sellerRoute");
+const adminRoutes = require('./adminRoute')
 
 module.exports = routes;
+module.exports = adminRoutes
+

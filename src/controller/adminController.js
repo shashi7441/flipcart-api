@@ -1,4 +1,5 @@
 const User = require('../models/user');
+
 const { sendMail, fieldsVisible } = require('../service/adminService');
 require('dotenv').config();
 

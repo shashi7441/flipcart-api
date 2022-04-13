@@ -204,7 +204,14 @@ exports.createBrand = async (req, res) => {
 };
 
 exports.showBrand = async (req, res) => {
-  const result = await Brand.find({ createdBy: req.id });
+  const { page = 1, limit = 5 } = req.query;
+
+  const result = await Brand.find({ createdBy: req.id })
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    .sort({ createdAt: -1 })
+    .populate('image', 'image.url')
+    .populate('createdBy', 'fullName');
   res.json({
     success: true,
     data: result,

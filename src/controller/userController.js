@@ -56,6 +56,7 @@ userEmailLog = async (req, res) => {
     req.body.password,
     result.password
   );
+  
   console.log('result', result);
 
   if (userPresent != null) {

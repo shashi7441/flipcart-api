@@ -169,7 +169,6 @@ exports.fieldsVisible = (req) => {
 
 exports.sellerTokenVarify = (req, res, next) => {
   const token = req.headers.authorization;
-  // console.log("toeknndgasdgasg", token);
   if (!token) {
     return res.status(400).json({
       message: 'A token is required for authentication',

@@ -15,6 +15,7 @@ const {
 const Photo = require('../models/image');
 const { showImage } = require('../controller/photoController');
 const { uploadImges } = require('../utility/multer');
+const { search } = require('../routes/category');
 
 // const client = redis.createClient();
 // client.connect();
@@ -143,7 +144,9 @@ exports.createProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
   try {
     // console.log(req.id);
-    // {$or:[{"category_name":regex},{"description":regex}]}
+    const search = req.query.search;
+    const regex = new RegExp(search, 'i');
+
     const find = await Product.find({ createdBy: req.id })
       .populate('brandId', 'brand')
       .populate('categoryId', 'category')
@@ -158,13 +161,17 @@ exports.getAllProducts = async (req, res) => {
     }
     const { page = 1, limit = 5 } = req.query;
     const filter = filterCheack(req, res);
+    console.log('.................', filter);
+
     if (filter === false) {
       return res.status(404).json({
         message: 'please enter valid fields',
       });
     } else {
       const allfields = productFields(req);
-      const result = await Product.find(filter, allfields)
+      const result = await Product.find(filter, {
+        $or: [{ title: regex }, { services: regex }],
+      })
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort({ createdAt: -1 })

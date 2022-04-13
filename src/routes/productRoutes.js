@@ -87,13 +87,38 @@ productRoutes.post(
   createProduct
 );
 // .................In product get api..............................
+/**
+ * /api/product:
+ *  get:
+ *      summary: remove from cart
+ *      tags: [Products]
+ *      parameters:
+ *          - in : path
+ *            name: id
+ *            schema:
+ *              type: string
+ *              description: enter the id of product you want to remove
+ *          - in : query
+ *            name: fields
+ *            schema:
+ *              type: string
+ *            name : filter
+ *             type: object
+ *      responses:
+ *          200:
+ *              description: ok
+ *
+ *          404:
+ *              description : Bad request
+ */
 
 productRoutes.get(
   '/product',
   sellerTokenVarify,
   roleCheack(roles),
-  getAllProducts,
+  getAllProducts
 );
+
 // ........................In product update api.....................
 /**
  * @swagger

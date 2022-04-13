@@ -353,18 +353,19 @@ exports.productUpdateValidation = (req, res, next) => {
   }
 };
 
-exports.addToCartValidation = () => {
-  try {
-    const validateUser = (user) => {
-      const JoiSchema = Joi.object({
-        quantity: Joi.number().message('quantity should be a  number'),
-        createdBy: Joi.string(),
-        productId: Joi.string(),
-      });
-      JoiSchema.validate(user);
-      next();
-    };
-  } catch (e) {
-    console.log(e);
+exports.addToCartValidation = (req, res, next) => {
+  const validateUser = (user) => {
+    const JoiSchema = Joi.object({
+      ProductId: Joi.string().required(),
+      quantity: Joi.number().required(),
+    });
+    return JoiSchema.validate(user);
+  };
+  const response = validateUser(req.body);
+  if (response.error) {
+    const msg = response.error.details[0].message;
+    return res.status(422).json({ status: 422, message: msg });
+  } else {
+    next();
   }
 };

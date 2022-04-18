@@ -14,9 +14,9 @@ exports.adminSignupValidation = (req, res, next) => {
         .length(6)
         .required()
         .trim(),
-      fullName: Joi.string().max(30).required().trim(),
+      fullName: Joi.string().min(3).trim(),
       aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string(),
+      role: Joi.string().trim(),
     });
     return JoiSchema.validate(user);
   };
@@ -47,10 +47,11 @@ exports.sellerSignupValidation = (req, res, next) => {
       phone: Joi.string()
         .required()
         .trim()
-        .regex(/^(\+91)[789]\d{9}$/),
-      fullName: Joi.string().max(30).required().trim(),
+        .regex(/^(\+91)[789]\d{9}$/)
+        .message(' please input in this format +919856521463'),
+      fullName: Joi.string().min(3).required().trim(),
       aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string(),
+      role: Joi.string().trim(),
     });
     return JoiSchema.validate(user);
   };
@@ -81,10 +82,11 @@ exports.userSignupValidation = (req, res, next) => {
       phone: Joi.string()
         .required()
         .trim()
-        .regex(/^(\+91)[789]\d{9}$/),
-      fullName: Joi.string().max(30).required().trim(),
+        .regex(/^(\+91)[789]\d{9}$/)
+        .message(' please input in this format +919874562358'),
+      fullName: Joi.string().min(3).required().trim(),
       aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string(),
+      role: Joi.string().trim(),
     });
     return JoiSchema.validate(user);
   };
@@ -113,10 +115,8 @@ exports.userLoginValidation = (req, res, next) => {
         .trim(),
       phone: Joi.string()
         .trim()
-        .regex(/^(\+91)[789]\d{9}$/),
-      fullName: Joi.string().max(30).trim(),
-      aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string(),
+        .regex(/^(\+91)[789]\d{9}$/)
+        .message(' please input in this format +917441177893'),
     }).xor('email', 'phone');
     return JoiSchema.validate(user);
   };
@@ -145,10 +145,8 @@ exports.sellerLoginValidation = (req, res, next) => {
         .trim(),
       phone: Joi.string()
         .trim()
-        .regex(/^(\+91)[789]\d{9}$/),
-      fullName: Joi.string().max(30).trim(),
-      aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string(),
+        .regex(/^(\+91)[789]\d{9}$/)
+        .message(' please input in this format +917441177893'),
     }).xor('email', 'phone');
     return JoiSchema.validate(user);
   };
@@ -167,6 +165,7 @@ exports.otpVerifyValidation = (req, res, next) => {
       phone: Joi.string()
         .trim()
         .required()
+        .message(' please input in this format +917441177893')
         .regex(/^(\+91)[789]\d{9}$/),
       otp: Joi.string().required(),
     });
@@ -181,24 +180,24 @@ exports.otpVerifyValidation = (req, res, next) => {
   }
 };
 exports.adressValidation = (req, res, next) => {
-  const validateUser = (user) => {
+  const addressValidate = (user) => {
+    // console.log("addressValidate");
     const JoiSchema = Joi.object({
       userId: Joi.string().trim(),
-      country: Joi.string().required().trim(),
-      state: Joi.string().required().trim(),
-      city: Joi.string().required().trim(),
-      streat: Joi.string().max(500).trim(),
+      country: Joi.string().required().trim().min(3),
+      state: Joi.string().required().trim().min(5),
+      city: Joi.string().required().trim().min(3),
+      streat: Joi.string().max(500).trim().min(3),
       pincode: Joi.number().min(6).required(),
-      phone: Joi.string().min(13).required(),
-      fullName: Joi.string().required().trim(),
       landMark: Joi.string().trim(),
       houseNo: Joi.string().trim().required(),
       addressType: Joi.string().trim().required(),
     });
     return JoiSchema.validate(user);
   };
-  const response = validateUser(req.body);
+  const response = addressValidate(req.body);
   if (response.error) {
+    // console.log("err");
     const msg = response.error.details[0].message;
     return res.status(422).json({ status: 422, message: msg });
   } else {
@@ -213,20 +212,21 @@ exports.sellerProfileValidation = (req, res, next) => {
       adharCardNumber: Joi.string()
         .required()
         .trim()
-        .pattern(
-          new RegExp(' ^[2-9]{1}[0-9]{3}[s-]\\s[0-9]{4}[s-]\\s[0-9]{4}$')
-        )
-        .length(14),
+        .pattern(new RegExp('^[2-9]{1}[0-9]{3}\\s[0-9]{4}\\s[0-9]{4}$'))
+        .length(14)
+        .message('please input in this format 3675 9834 6012'),
       panCardNumber: Joi.string()
         .required()
         .trim()
-        .pattern(new RegExp('[A-Z]{5}[0-9]{4}[A-Z]{1}')),
+        .pattern(new RegExp('[A-Z]{5}[0-9]{4}[A-Z]{1}'))
+        .message('please input in this format KFOEG6258A'),
       gstNumber: Joi.string()
         .pattern(
           new RegExp(
             '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$'
           )
         )
+        .message('please input in this format 06BZAHM6385P6Z2')
         .length(15)
         .required(),
     });
@@ -254,7 +254,7 @@ exports.productValidation = (req, res, next) => {
       categoryId: Joi.string().trim().required(),
       brandId: Joi.string().required().trim(),
       size: Joi.number(),
-      title: Joi.string().required().min(5),
+      title: Joi.string().required().min(5).trim(),
       rating: Joi.number(),
       isAvailable: Joi.boolean(),
       quantity: Joi.number(),
@@ -305,27 +305,6 @@ exports.brandValidation = (req, res, next) => {
     next();
   }
 };
-
-exports.photoValidation = (req, res, next) => {
-  const validateUser = (user) => {
-    const JoiSchema = Joi.object({
-      image: Joi.string().trim(),
-      text: Joi.string().required(),
-    });
-
-    console.log('<><><>,</></></> in  validation', req);
-    return JoiSchema.validate(user);
-  };
-
-  const response = validateUser(req.body);
-  if (response.error) {
-    const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
-  } else {
-    next();
-  }
-};
-
 exports.productUpdateValidation = (req, res, next) => {
   try {
     const validateUser = (user) => {

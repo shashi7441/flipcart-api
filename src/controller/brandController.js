@@ -26,12 +26,18 @@ exports.updateBrand = async (req, res) => {
     const _id = req.params.id;
     const data = await Brand.findOne({ _id, isActive: true });
     req.brand_Id = data._id;
+    if (Object.entries(req.body).length == 0) {
+      res.json({
+        succes: false,
+        message: 'please fill the field',
+      });
+    }
 
     if (data) {
       req.updateImageId = data.image;
       console.log(req.files);
       if (req.files) {
-        const newResult = await Photo.findOne({ categoryId: req.brand_Id });
+        const newResult = await Photo.findOne({ brandId: req.brand_Id });
         console.log('newresult', newResult);
         if (newResult) {
           const result = await Brand.findOneAndUpdate(
@@ -87,7 +93,7 @@ exports.updateBrand = async (req, res) => {
             },
             { new: true }
           );
-          const categoryFind = await Brand.findOne({
+          const brandFind = await Brand.findOne({
             brand: req.body.brand,
           })
             .populate('image', 'image.url')
@@ -95,23 +101,16 @@ exports.updateBrand = async (req, res) => {
           return res.json({
             success: true,
             message: 'updated successfully',
-            data: categoryFind,
+            data: brandFind,
           });
         }
       }
     } else {
       res.json({
         succes: false,
-        message: ' category not found',
+        message: ' brand not found',
       });
     }
-
-    // const result = await Category.updateOne({ _id }, { category } ,{new:true});
-    // res.json({
-    //   success: true,
-    //   message: 'updated successfully',
-    //   data: result,
-    // });
   } catch (e) {
     res.json({
       succes: false,
@@ -123,7 +122,6 @@ exports.updateBrand = async (req, res) => {
 exports.createBrand = async (req, res) => {
   const { brand, image } = req.body;
   console.log('>>>>>>>>>>>>>>', req.files);
-  // console.log('in category', category);
   try {
     const findData = await Brand.findOne({
       brand: req.body.brand,
@@ -153,7 +151,7 @@ exports.createBrand = async (req, res) => {
           const result = await createDocument.save();
           res.json({
             success: true,
-            message: 'category created successful',
+            message: 'brand created successful',
             data: result,
           });
         } else {
@@ -174,7 +172,7 @@ exports.createBrand = async (req, res) => {
             image: req.results._id,
           });
           const result = await createDocument.save();
-          const categoryFind = await Brand.findOne({
+          const brandFind = await Brand.findOne({
             brand: req.body.brand,
           })
             .populate('image', 'image.url')
@@ -183,8 +181,8 @@ exports.createBrand = async (req, res) => {
           req.results.save();
           res.json({
             success: true,
-            message: 'category created successful',
-            data: categoryFind,
+            message: 'brand created successful',
+            data: brandFind,
           });
         } else {
           res.json({
@@ -204,39 +202,57 @@ exports.createBrand = async (req, res) => {
 };
 
 exports.showBrand = async (req, res) => {
-  const { page = 1, limit = 5 } = req.query;
-
-  const result = await Brand.find({ createdBy: req.id })
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
-    .sort({ createdAt: -1 })
-    .populate('image', 'image.url')
-    .populate('createdBy', 'fullName');
-  res.json({
-    success: true,
-    data: result,
-  });
+  try {
+    const { page = 1, limit = 5 } = req.query;
+    const search = req.query.search;
+    const regex = new RegExp(search, 'i');
+    const result = await Brand.find(
+      { createdBy: req.id },
+      { $or: [{ brand: regex }] }
+    )
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 })
+      .populate('image', 'image.url')
+      .populate('createdBy', 'fullName');
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
+  }
 };
 
 exports.deleteBrand = async (req, res) => {
-  const _id = req.params.id;
-  const findData = await Brand.findOne({ _id });
-  console.log(findData.image);
-  if (!findData.isActive == false) {
-    const test = findData.image;
-    req.deleteImageId = test;
-    await deleteCategoryPhoto(req, res);
-    findData.isActive = false;
-    findData.image = null;
-    findData.save();
-    return res.json({
-      succes: true,
-      message: 'brand deleted successfully',
-    });
-  } else {
+  try {
+    const _id = req.params.id;
+    const findData = await Brand.findOne({ _id });
+    console.log(findData.image);
+    if (!findData.isActive == false) {
+      const test = findData.image;
+      req.deleteImageId = test;
+      await deleteBrandPhoto(req, res);
+      findData.isActive = false;
+      findData.image = null;
+      findData.save();
+      return res.json({
+        succes: true,
+        message: 'brand deleted successfully',
+      });
+    } else {
+      res.json({
+        succes: false,
+        message: 'brand already deleted',
+      });
+    }
+  } catch (e) {
     res.json({
       succes: false,
-      message: 'brand already deleted',
+      message: e.message,
     });
   }
 };

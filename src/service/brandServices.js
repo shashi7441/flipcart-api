@@ -1,30 +1,5 @@
 const Photo = require('../models/image');
 const cloudinary = require('cloudinary');
-
-
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.CLOUD_API_KEY,
-  api_secret: process.env.CLOUD_API_SECRET,
-});
-// exports.createSinglePhoto = async (req, res)=>{
-//  try{
-//     await uploadSingleImage(req, res, next)
-//  }catch(e){
-//   res.json({
-//       success:false,
-//       data:e.message
-//   })
-//  }
-// }
-
-// exports.deleteSinglePhoto = async (req, res)=>{
-// //    await cloudinary.uploader.destroy( , (result, error)=>{
-// //        console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>",result);
-// //        console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", error );
-// //    });
-// }
-
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -64,7 +39,12 @@ exports.deleteBrandPhoto = async (req, res) => {
     });
 
     user.remove();
-  } catch (e) {}
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
+  }
 };
 
 exports.createAndUpdateBrandPhoto = async (req, res) => {
@@ -74,7 +54,7 @@ exports.createAndUpdateBrandPhoto = async (req, res) => {
       brandId: req.brand_Id,
     });
     const result = await create.save();
-    console.log('res111111111111111111', result._id);
+    // console.log('res111111111111111111', result._id);
     req.photo_id = result._id;
   } catch (e) {
     console.log('................', e);
@@ -86,42 +66,39 @@ exports.createAndUpdateBrandPhoto = async (req, res) => {
 };
 
 exports.updateBrandPhoto = async (req, res) => {
-  console.log('shsashifdf');
-
-  const id = req.updateImageId;
-  const data = await Photo.findOne({ _id: id });
-  console.log('in update photo', data);
-  const dataImage = data.image;
-  dataImage.map(async (i) => {
-    await cloudinary.uploader.destroy(i.public_id);
-    // console.log(i.public_id);
-  });
-  console.log('>????????????????????', req.files);
-  const urls = [];
-  for (let file of req.files) {
-    const { path } = file;
-    await cloudinary.uploader.upload(`${path}`, (result, e) => {
-      // console.log("errrrr", e);
-      // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>.",result);
-      const { url, public_id } = result;
-      const newPush = {};
-      // console.log('result', result);
-      newPush.url = url;
-      newPush.public_id = public_id;
-      urls.push(newPush);
-      req.urls = urls;
-      // console.log(url);
+  try {
+    const id = req.updateImageId;
+    const data = await Photo.findOne({ _id: id });
+    const dataImage = data.image;
+    dataImage.map(async (i) => {
+      await cloudinary.uploader.destroy(i.public_id);
     });
-    const updateImage = await Photo.updateOne(
-      { _id: id },
-      {
-        image: req.urls,
-      },
-      {
-        new: true,
-      }
-    );
+    const urls = [];
+    for (let file of req.files) {
+      const { path } = file;
+      await cloudinary.uploader.upload(`${path}`, (result, e) => {
+        const { url, public_id } = result;
+        const newPush = {};
+        newPush.url = url;
+        newPush.public_id = public_id;
+        urls.push(newPush);
+        req.urls = urls;
+        // console.log(url);
+      });
+      const updateImage = await Photo.updateOne(
+        { _id: id },
+        {
+          image: req.urls,
+        },
+        {
+          new: true,
+        }
+      );
+    }
+  } catch (e) {
+    res.json({
+      successL: false,
+      message: e.message,
+    });
   }
 };
-
-

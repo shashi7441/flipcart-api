@@ -15,7 +15,12 @@ exports.updateCategory = async (req, res) => {
     const _id = req.params.id;
     const data = await Category.findOne({ _id, isActive: true });
     req.category_Id = data._id;
-
+    if (Object.entries(req.body).length == 0) {
+      res.json({
+        success: false,
+        message: ' please fill the field',
+      });
+    }
     if (data) {
       req.updateImageId = data.image;
       console.log(req.files);
@@ -94,13 +99,6 @@ exports.updateCategory = async (req, res) => {
         message: ' category not found',
       });
     }
-
-    // const result = await Category.updateOne({ _id }, { category } ,{new:true});
-    // res.json({
-    //   success: true,
-    //   message: 'updated successfully',
-    //   data: result,
-    // });
   } catch (e) {
     res.json({
       succes: false,
@@ -193,40 +191,56 @@ exports.createCategory = async (req, res) => {
 };
 
 exports.showCategory = async (req, res) => {
-  // const result = await Category.find({ createdBy: req.id });
-  const result = await Category.find({ createdBy: req.id })
-  .limit(limit * 1)
-  .skip((page - 1) * limit)
-  .sort({ createdAt: -1 })
-  .populate('image', 'image.url')
-  .populate('createdBy', 'fullName'); 
+  try {
+    const search = req.query.search;
+    const regex = new RegExp(search, 'i');
+    const result = await Category.find(
+      { createdBy: req.id },
+      { $or: [{ category: regex }] }
+    )
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 })
+      .populate('image', 'image.url')
+      .populate('createdBy', 'fullName');
 
-
-
-  res.json({
-    success: true,
-    data: result,
-  });
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
+  }
 };
 exports.deleteCategory = async (req, res) => {
-  const _id = req.params.id;
-  const findData = await Category.findOne({ _id });
-  console.log(findData.image);
-  if (!findData.isActive == false) {
-    const test = findData.image;
-    req.deleteImageId = test;
-    await deleteCategoryPhoto(req, res);
-    findData.isActive = false;
-    findData.image = null;
-    findData.save();
-    return res.json({
-      succes: true,
-      message: 'categoty deleted successfully',
-    });
-  } else {
+  try {
+    const _id = req.params.id;
+    const findData = await Category.findOne({ _id });
+    console.log(findData.image);
+    if (!findData.isActive == false) {
+      const test = findData.image;
+      req.deleteImageId = test;
+      await deleteCategoryPhoto(req, res);
+      findData.isActive = false;
+      findData.image = null;
+      findData.save();
+      return res.json({
+        succes: true,
+        message: 'categoty deleted successfully',
+      });
+    } else {
+      res.json({
+        succes: false,
+        message: 'category already deleted',
+      });
+    }
+  } catch (e) {
     res.json({
-      succes: false,
-      message: 'category already deleted',
+      success: false,
+      message: e.message,
     });
   }
 };

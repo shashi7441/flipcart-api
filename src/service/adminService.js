@@ -88,7 +88,6 @@ exports.TokenVarify = (req, res, next) => {
     const token = bearerToken[1];
     jwt.verify(token, process.env_SECRET_KEY,(error, payload) => {
       if (payload) {
-        console.log('<<>>>>>>>>>>>>>>>>>>>>>', payload._id);
         req._id = payload._id;
 
         next();
@@ -147,7 +146,6 @@ exports.adminAprovel = async (req, res) => {
 exports.fieldsVisible = (req) => {
   if (req.query.fields) {
     const arr = req.query.fields.split(',');
-    // console.log('in', arr);
     let fields = {};
     arr.map((i) => {
       fields[i] = 1;
@@ -181,9 +179,7 @@ exports.sellerTokenVarify = (req, res, next) => {
     const token = bearerToken[1];
     jwt.verify(token, process.env.SECRET_KEY, (error, payload) => {
       if (payload) {
-        // console.log("<<>>>>>>>>>>>>>>>>>id >>>>",payload._id);
         req.id = payload._id;
-        // console.log();
         next();
       } else {
         return res.status(400).json({
@@ -195,3 +191,6 @@ exports.sellerTokenVarify = (req, res, next) => {
     });
   }
 };
+
+
+

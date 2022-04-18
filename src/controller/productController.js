@@ -196,10 +196,11 @@ exports.getAllProducts = async (req, res) => {
     console.log(e);
     res.json({
       success: false,
-      data: e,
+      data: e.message,
     });
   }
 };
+
 // ...................!!!!!!!!!!!!!!!!!redis middleware...........!!!!!!!!!!!!!!!!!!!!!!
 
 // exports.redis_product = async (req, res, next) => {
@@ -223,10 +224,17 @@ exports.getAllProducts = async (req, res) => {
 
 exports.updateProducts = async (req, res) => {
   try {
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
     const _id = req.params.id;
     const data = await Product.findOne({ _id, isActive: true });
     req.product_Id = data._id;
+
+    if (Object.entries(req.body).length == 0) {
+      res.json({
+        success: false,
+        message: ' please fill the field',
+      });
+    }
+
     if (data) {
       req.updateImageId = data.image;
       const { image } = req.body;
@@ -340,17 +348,23 @@ exports.deleteProducts = async (req, res) => {
 };
 
 exports.showOneProduct = async (req, res) => {
-  const _id = req.params.id;
+  try {
+    const _id = req.params.id;
+    const find = await Product.find({ _id: _id })
+      .populate('brandId', 'brand')
+      .populate('categoryId', 'category')
+      .populate('image', 'image.url')
+      .populate('createdBy', 'fullName');
 
-  const find = await Product.find({ _id: _id })
-    .populate('brandId', 'brand')
-    .populate('categoryId', 'category')
-    .populate('image', 'image.url')
-    .populate('createdBy', 'fullName');
-
-  res.json({
-    succes: true,
-    message: 'product found successfully',
-    data: find,
-  });
+    res.json({
+      succes: true,
+      message: 'product found successfully',
+      data: find,
+    });
+  } catch (e) {
+    res.json({
+      succes: false,
+      message: e.message,
+    });
+  }
 };

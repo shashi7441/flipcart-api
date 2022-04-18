@@ -25,7 +25,6 @@ exports.createAndUpdatePhoto = async (req, res) => {
   req.photo_id = result._id;
 };
 
-
 exports.deletePhoto = async (req, res) => {
   try {
     const testId = req.deleteImageId;
@@ -41,78 +40,91 @@ exports.deletePhoto = async (req, res) => {
 
     user.remove();
   } catch (e) {
-    //  res.send(e)
+    res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
 exports.updatePhoto = async (req, res) => {
-  console.log('shsashifdf');
-
-  const id = req.updateImageId;
-  const data = await Photo.findOne({ _id: id });
-  console.log('in update photo', data);
-  const dataImage = data.image;
-  dataImage.map(async (i) => {
-    await cloudinary.uploader.destroy(i.public_id);
-    // console.log(i.public_id);
-  });
-  console.log('>????????????????????', req.files);
-  const urls = [];
-  for (let file of req.files) {
-    const { path } = file;
-    await cloudinary.uploader.upload(`${path}`, (result, e) => {
-      // console.log("errrrr", e);
-      // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>.",result);
-      const { url, public_id } = result;
-      const newPush = {};
-      // console.log('result', result);
-      newPush.url = url;
-      newPush.public_id = public_id;
-      urls.push(newPush);
-      req.urls = urls;
-      // console.log(url);
+  try {
+    const id = req.updateImageId;
+    const data = await Photo.findOne({ _id: id });
+    console.log('in update photo', data);
+    const dataImage = data.image;
+    dataImage.map(async (i) => {
+      await cloudinary.uploader.destroy(i.public_id);
+      // console.log(i.public_id);
     });
-    const updateImage = await Photo.updateOne(
-      { _id: id },
-      {
-        image: req.urls,
-      }
-    );
+    console.log('>????????????????????', req.files);
+    const urls = [];
+    for (let file of req.files) {
+      const { path } = file;
+      await cloudinary.uploader.upload(`${path}`, (result, e) => {
+        // console.log("errrrr", e);
+        // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>.",result);
+        const { url, public_id } = result;
+        const newPush = {};
+        // console.log('result', result);
+        newPush.url = url;
+        newPush.public_id = public_id;
+        urls.push(newPush);
+        req.urls = urls;
+        // console.log(url);
+      });
+      const updateImage = await Photo.updateOne(
+        { _id: id },
+        {
+          image: req.urls,
+        }
+      );
+    }
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
 exports.updatePhotoAndBody = async (req, res) => {
-  const id = req.updateImageId;
-  const data = await Photo.findOne({ _id: id });
-  console.log('in update photo', data);
+  try {
+    const id = req.updateImageId;
+    const data = await Photo.findOne({ _id: id });
+    console.log('in update photo', data);
 
-  const dataImage = data.image;
-  dataImage.map(async (i) => {
-    await cloudinary.uploader.destroy(i.public_id);
-  });
-  const urls = [];
-  for (let file of req.files) {
-    const { path } = file;
-    await cloudinary.uploader.upload(`${path}`, (result, e) => {
-      // console.log("errrrr", e);
-      // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>.",result);
-      const { url, public_id } = result;
-      const newPush = {};
-      // console.log('result', result);
-      newPush.url = url;
-      newPush.public_id = public_id;
-      urls.push(newPush);
-      req.urls = urls;
-      // console.log(url);
+    const dataImage = data.image;
+    dataImage.map(async (i) => {
+      await cloudinary.uploader.destroy(i.public_id);
     });
-    const updateImage = await Photo.updateOne(
-      { _id: id },
-      {
-        image: req.urls,
-      }
-    );
-
-    // console.log("hiiiiiiiiiiiiiii",updateImage);
+    const urls = [];
+    for (let file of req.files) {
+      const { path } = file;
+      await cloudinary.uploader.upload(`${path}`, (result, e) => {
+        // console.log("errrrr", e);
+        // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>.",result);
+        const { url, public_id } = result;
+        const newPush = {};
+        // console.log('result', result);
+        newPush.url = url;
+        newPush.public_id = public_id;
+        urls.push(newPush);
+        req.urls = urls;
+        // console.log(url);
+      });
+      const updateImage = await Photo.updateOne(
+        { _id: id },
+        {
+          image: req.urls,
+        }
+      );
+    }
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 

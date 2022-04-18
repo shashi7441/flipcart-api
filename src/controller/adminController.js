@@ -11,7 +11,7 @@ adminLogin = async (req, res) => {
     const result = await User.findOne({
       email: req.body.email,
     });
-    if (result == null) {
+    if (!result) {
       res.json({
         success: false,
         message: 'invalid user',
@@ -29,8 +29,6 @@ adminLogin = async (req, res) => {
           process.env.SECRET_KEY,
           { expiresIn: '24h' }
         );
-        console.log('in login function', jwtToken);
-
         res.status(200).json({
           success: true,
           status: 200,
@@ -51,55 +49,99 @@ adminLogin = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error);
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+exports.sellerReject = async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const userData = await User.findOne({ _id: _id, role: 'seller' });
+    if (!userData) {
+      res.json({
+        success: false,
+        message: 'data not found',
+      });
+    }
+
+    if (userData.isApproved == true) {
+      const updatedData = await User.updateOne(
+        { _id },
+        { isApproved: false },
+        { new: true }
+      );
+      res.json({
+        success: true,
+        message: 'updated successfully',
+      });
+    } else {
+      res.json({
+        success: false,
+        message: 'wrong data',
+      });
+    }
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
 exports.adminSignup = async (req, res) => {
-  const find = await User.findOne({
-    role: 'admin',
-  });
-  if (find == null) {
-    req.body.role = 'admin';
-    req.body.isVerified = true;
-    req.body.isApproved = true;
-    req.body.otp = undefined;
-    const createUser = await User(req.body);
-    const result = await createUser.save();
-    res.json({
-      success: true,
-      message: 'user register successful',
+  try {
+    const find = await User.findOne({
+      role: 'admin',
     });
-  } else {
-    adminLogin(req, res);
+    if (find == null) {
+      req.body.role = 'admin';
+      req.body.isVerified = true;
+      req.body.isApproved = true;
+      req.body.otp = undefined;
+      const createUser = await User(req.body);
+      const result = await createUser.save();
+      res.json({
+        success: true,
+        message: 'user register successful',
+      });
+    } else {
+      adminLogin(req, res);
+    }
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
 exports.getAllSeller = async (req, res) => {
-  var page = req.query.page;
-  var size = req.query.size;
-  console.log(size);
-  if (!page) {
-    page = 1;
+  try {
+    const { page = 1, limit = 5 } = req.query;
+    const fields = fieldsVisible(req);
+    // console.log(fields);
+    const find = await User.find({ role: 'seller' }, fields)
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 });
+    res.json({
+      success: true,
+      data: find,
+    });
+  } catch (e) {
+    res.json({
+      success: false,
+      message: e.message,
+    });
   }
-  if (!size) {
-    size = 2;
-  }
-  const fields = fieldsVisible(req);
-  // console.log(fields);
-  const find = await User.find({ role: 'seller' })
-    .limit(size)
-    .sort({ createdAt: -1 });
-  res.json({
-    success: true,
-    data: find,
-  });
 };
 
 exports.routeCheck = (req, res, next) => {
   res.json({
     success: false,
-    message: '!....... 404.........Page Not Found...............! ',
+    message: ' 404 Page Not Found ',
   });
   next();
 };
@@ -107,8 +149,6 @@ exports.routeCheck = (req, res, next) => {
 exports.signupejs = (req, res) => {
   res.render('signup');
 };
-
-
 
 exports.dashBoardejs = (req, res) => {
   res.render('dashBoard');

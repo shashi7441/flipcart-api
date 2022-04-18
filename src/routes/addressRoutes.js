@@ -11,12 +11,13 @@ const {
   showAllState,
 } = require('../controller/addressController');
 const { adressValidation } = require('../middleware/middleware');
-const { userTokenVarify } = require('../service/userService');
+const { sellerTokenVarify } = require('../service/adminService');
 const roles = process.env.USER_ROLE
-addressRoutes.post('/create', userTokenVarify, roleCheack(roles), adressValidation, createAddress);
-addressRoutes.post('/get', userTokenVarify,roleCheack(roles), getAddress);
-addressRoutes.get('/country', userTokenVarify, roleCheack(roles), showAllState);
-addressRoutes.patch('/update/:_id', userTokenVarify,roleCheack(roles) ,updateAddress);
-addressRoutes.delete('/delete/:_id',userTokenVarify, roleCheack(roles), deleteData);
+
+addressRoutes.post('/address', sellerTokenVarify, roleCheack(roles), adressValidation, createAddress);
+addressRoutes.get('/address', sellerTokenVarify,roleCheack(roles), getAddress);
+addressRoutes.get('/address/country', sellerTokenVarify, roleCheack(roles), showAllState);
+addressRoutes.put('/address/:id',sellerTokenVarify,roleCheack(roles) ,updateAddress);
+addressRoutes.delete('/address/:id',sellerTokenVarify, roleCheack(roles), deleteData);
 
 module.exports = addressRoutes;

@@ -4,63 +4,69 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilio = require('twilio');
 const { userHtmlTemplate } = require('../utility/mailTemplate');
-const { sellerPresent } = require('../service/userService');
-
 const User = require('../models/user');
 const { sendMail, Crypto_token, otp } = require('../service/userService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 exports.userSignup = async (req, res) => {
-  const find = await User.findOne({
-    email: req.body.email,
-  });
-  // console.log("url", url);
-  if (!find) {
-    req.body.role = 'user';
-    req.body.isApproved = true;
-    // req.body. photo = url;
-    const userToken = Crypto_token();
-    console.log('token $%$%^&*(&^%', userToken);
-
-    // ........... create User ................
-
-    const createUser = await User(req.body);
-    const result = await createUser.save();
-    result.refreshToken = userToken;
-    resultToken = result.refreshToken;
-    const fullName = result.fullName;
-    const link = `<br><a href="http://127.0.0.1:${process.env.PORT}/api/auth/user/verifytoken/${resultToken}">Click Here to Verify </a>`;
-    if (req.body.email) {
-      sendMail(req, resultToken, userHtmlTemplate(link, fullName));
-    }
-    res.json({
-      success: true,
-      message: 'user register successful',
+  try {
+    const find = await User.findOne({
+      email: req.body.email,
     });
-  } else {
+
+    if (!find) {
+      req.body.role = 'user';
+      req.body.isApproved = true;
+      // req.body. photo = url;
+      const userToken = Crypto_token();
+
+      // ........... create User ................
+
+      const createUser = await User(req.body);
+      const result = await createUser.save();
+      result.refreshToken = userToken;
+      resultToken = result.refreshToken;
+      const fullName = result.fullName;
+      const link = `<br><a href="http://127.0.0.1:${process.env.PORT}/api/auth/user/verifytoken/${resultToken}">Click Here to Verify </a>`;
+      if (req.body.email) {
+        sendMail(req, resultToken, userHtmlTemplate(link, fullName));
+      }
+     return  res.json({
+        success: true,
+        message: 'user register successful',
+      });
+    } else {
+      res.json({
+        success: false,
+        message: ' user already exist',
+      });
+    }
+  } catch (e) {
     res.json({
       success: false,
-      message: ' user already exist',
+      message: e.message,
     });
   }
 };
 
 //  ...........email login....................
 userEmailLog = async (req, res) => {
-  const userPresent = await sellerPresent(req, res);
-  const result = await User.findOne({
-    email: req.body.email,
-  });
-  const passwordMatch = await bcrypt.compare(
-    req.body.password,
-    result.password
-  );
-  
-  console.log('result', result);
+  try {
+    const result = await User.findOne({
+      email: req.body.email,
+    });
+    if (!result) {
+      res.json({
+        success: false,
+        message: 'user not  found please signup',
+      });
+    }
 
-  if (userPresent != null) {
-    console.log('infqwnnfhahfahfla', result.role);
+    const passwordMatch = await bcrypt.compare(
+      req.body.password,
+      result.password
+    );
     if (result.role === 'user') {
       if (result.isVerified === true) {
         if (passwordMatch) {
@@ -70,7 +76,7 @@ userEmailLog = async (req, res) => {
               process.env.SECRET_KEY,
               { expiresIn: '24h' }
             );
-            res.status(200).json({
+            return res.status(200).json({
               success: true,
               status: 200,
               message: 'Login Successfully ',
@@ -96,30 +102,35 @@ userEmailLog = async (req, res) => {
         message: 'you are not user',
       });
     }
-  } else {
-    res.json({
-      success: true,
-      message: 'user not  found',
+  } catch (e) {
+    return res.json({
+      success: false,
+      message: e.message,
     });
   }
 };
 
 // ..................phone login.................
 userPhoneLog = async (req, res) => {
-  const userPresent = await sellerPresent(req, res);
-  const result = await User.findOne({
-    phone: req.body.phone,
-    role: 'user',
-  });
-  if (result.otp === null) {
-    otp(req, res, result);
-  }
-  const passwordMatch = await bcrypt.compare(
-    req.body.password,
-    result.password
-  );
-  console.log('result', result);
-  if (userPresent != null) {
+  try {
+    const result = await User.findOne({
+      phone: req.body.phone,
+      role: 'user',
+    });
+    if (!result) {
+      res.json({
+        success: false,
+        message: 'user not found please signup',
+      });
+    }
+
+    if (result.otp === null) {
+      otp(req, res, result);
+    }
+    const passwordMatch = await bcrypt.compare(
+      req.body.password,
+      result.password
+    );
     if (result.role === 'user') {
       if (result.otp === 'true') {
         if (passwordMatch) {
@@ -155,10 +166,10 @@ userPhoneLog = async (req, res) => {
         message: 'you are not user',
       });
     }
-  } else {
+  } catch (e) {
     res.json({
-      success: true,
-      message: 'user not  found',
+      success: false,
+      message: e.message,
     });
   }
 };
@@ -170,55 +181,3 @@ exports.userLogin = async (req, res) => {
     userPhoneLog(req, res);
   }
 };
-
-
-
-
-
-// exports.forgetPassword = async (req, res) => {
-//   try {
-//       const email = req.body.email
-//       const result = await Post.findOne({ email })
-//       if (!result) {
-//           notifier.notify("User not register")
-//           return;
-//       }
-//       const secret = result.password
-//       const payload = {
-//           email: result.email,
-//           id: result.id
-//       }
-//       const token = jwt.sign(payload, secret, { expiresIn: "5min" })
-
-//       const link = `http://localhost:4600/resetpass/${result.id}/${token}`;
-//       mailfunction(email, link)
-//       res.send("Password reset link has been sent to your email...")
-//       notifier.notify("Mail sent successfully")
-//   } catch (error) {
-//       console.log(error)
-//   }
-
-
-// }
-
-
-// exports.updatePassword = async (req, res) => {
-//   const { id } = req.params
-//   try {
-//       const password = req.body.password
-//       let newPassword = password.toString();
-//       const bcryptPassword = async (newPassword) => {
-//           const pass = await bcrypt.hash(newPassword, 10)
-//           return pass;
-//       }
-//       const response = await bcryptPassword(newPassword)
-//       req.body.password = response;
-//       const result = await Post.findByIdAndUpdate({ _id: id }, req.body, { new: true })
-//       res.render("login")
-//       notifier.notify("Password update successfully")
-//   } catch (error) {
-//       console.log(error)
-//   }
-// }
-
-

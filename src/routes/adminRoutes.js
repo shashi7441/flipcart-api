@@ -4,14 +4,13 @@ const adminRoutes = express.Router();
 const {
   adminSignup,
   signupejs,
+  sellerReject,
   getAllSeller,
-dashBoardejs
+  dashBoardejs,
 } = require('../controller/adminController');
 const { TokenVarify, adminAprovel } = require('../service/adminService');
 const { adminSignupValidation } = require('../middleware/middleware');
 const { roleCheack } = require('../utility/role');
-
-
 
 //adminRoutes in signup
 /**
@@ -43,8 +42,9 @@ const { roleCheack } = require('../utility/role');
  */
 
 adminRoutes.post('/signup', adminSignupValidation, adminSignup);
+
 adminRoutes.get('/signup', signupejs);
-adminRoutes.get('/dashBoard', dashBoardejs)
+adminRoutes.get('/dashBoard', dashBoardejs);
 
 //...................adminRoutes post api...........................
 /**
@@ -85,5 +85,8 @@ adminRoutes.post('/aprovel', TokenVarify, roleCheack(roles), adminAprovel);
  *         required: true
  *         description: Numeric ID of the user to get
  */
-adminRoutes.get('/allSeller', TokenVarify, roleCheack(roles) , getAllSeller);
+adminRoutes.get('/allSeller', TokenVarify, roleCheack(roles), getAllSeller);
+
+adminRoutes.put('/reject/:id', TokenVarify, roleCheack(roles), sellerReject);
+
 module.exports = adminRoutes;

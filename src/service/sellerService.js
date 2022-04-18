@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 require('dotenv').config();
-const notifier = require('notifier')
+const notifier = require('notifier');
 const User = require('../models/user');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
@@ -95,22 +95,29 @@ exports.verifyOtp = async (req, res) => {
     const otp = req.body.otp;
     console.log('my otp is ', otp);
     const user = await User.findOne({ phone: contact });
-    // const time = user.expiresIn - Date.now() / 60000;
-    // console.log("time is ", time);
+    const currentTime = Date.now();
     if (user) {
       if (user.role === 'seller') {
-        if (user.otp === otp) {
-          await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
-          res.status(200).json({
-            message: 'seller verfified successfull !! wait for admins approval',
-            status: 200,
-            success: true,
-          });
+        if (user.resetTime >= currentTime) {
+          if (user.otp === otp) {
+            await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
+            res.status(200).json({
+              message:
+                'seller verfified successfull !! wait for admins approval',
+              status: 200,
+              success: true,
+            });
+          } else {
+            res.status(401).json({
+              message: 'invalid otp',
+              status: 401,
+              success: false,
+            });
+          }
         } else {
-          res.status(401).json({
-            message: 'invalid otp',
-            status: 401,
+          res.json({
             success: false,
+            message: 'your otp will be expire',
           });
         }
       } else {
@@ -121,7 +128,7 @@ exports.verifyOtp = async (req, res) => {
       }
     } else {
       res.status(404).json({
-        message: "user not found ; check input -'+91 before contact'",
+        message: 'user not found',
         status: 404,
         success: false,
       });
@@ -180,30 +187,30 @@ exports.sellerPresent = async (req) => {
   }
 };
 
-mailfunction = async (email, link)=>{
+mailfunction = async (email, link) => {
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.MY_MAIL,
-      pass: MY_PASSWORD
-    }
+      pass: MY_PASSWORD,
+    },
   });
-  
+
   var mailOptions = {
     from: process.env.MY_MAIL,
     to: req.body.email,
     subject: 'Sending Email using Node.js',
-    text: 'That was easy!'
+    text: 'That was easy!',
   };
-  
-  transporter.sendMail(mailOptions, function(error, info){
+
+  transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
       console.log(error);
     } else {
       console.log('Email sent: ' + info.response);
     }
-  }); 
-}
+  });
+};
 
 // exports.forgetPassword = async (req, res) => {
 //   try {
@@ -247,26 +254,29 @@ mailfunction = async (email, link)=>{
 //   }
 // },
 
-exports.updatePassword =  async (req, res) => {
-  const  _id  = req.params.id
+exports.updatePassword = async (req, res) => {
+  const _id = req.params.id;
   console.log(_id);
   try {
-      const newPassword = req.body.password
-      // let newPassword = password.toString();
-      const bcryptPassword = async (newPassword) => {
-        const pass = await bcrypt.hash(newPassword, 10)
-        return pass;
-      }
-      const response = await bcryptPassword(newPassword)
-      // req.body.password = response;
-      const result = await User.updateOne({_id:_id }, {password:response}, { new: true })
-      // notifier.notify("Password update successfully")
-      res.json({
-        success:true,
-        message:"password uppdated successfully"
-      })
+    const newPassword = req.body.password;
+    // let newPassword = password.toString();
+    const bcryptPassword = async (newPassword) => {
+      const pass = await bcrypt.hash(newPassword, 10);
+      return pass;
+    };
+    const response = await bcryptPassword(newPassword);
+    // req.body.password = response;
+    const result = await User.updateOne(
+      { _id: _id },
+      { password: response },
+      { new: true }
+    );
+    // notifier.notify("Password update successfully")
+    res.json({
+      success: true,
+      message: 'password uppdated successfully',
+    });
   } catch (error) {
-      console.log(error)
+    console.log(error);
   }
-}
-
+};

@@ -3,14 +3,16 @@ const bcrypt = require('bcrypt');
 const { date } = require('joi');
 const addressSchema = new mongoose.Schema(
   {
-    userId: String,
+    userId:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     country: String,
     state: String,
     city: String,
     streat: String,
     pincode: Number,
-    phone: String,
-    fullName: String,
+    pincode: String,
     landMark: String,
     houseNo: String,
     addressType: String,

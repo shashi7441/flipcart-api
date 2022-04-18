@@ -6,11 +6,15 @@ const {
   userLoginValidation,
   otpVerifyValidation,
 } = require('../middleware/middleware');
-const { userVerifiedEmail, verifyOtp } = require('../service/userService');
-const{sellerTokenVarify}= require('../service/adminService')
-const{roleCheack}= require('../utility/role')
-const{updatePassword}= require('../service/sellerService')
-const roles = process.env.USER_ROLE
+const {
+  userVerifiedEmail,
+  verifyOtp,
+  updatePassword,
+} = require('../service/userService');
+const { sellerTokenVarify } = require('../service/adminService');
+const { roleCheack } = require('../utility/role');
+const roles = process.env.USER_ROLE;
+
 /**
  * @swagger
  * /api/auth/user/signup:
@@ -48,7 +52,7 @@ userRoutes.post('/signup', userSignupValidation, userSignup);
 
 /**
  * @swagger
- * /auth/user/api/login:
+ * /api/auth/user/login:
  *    post:
  *      summary: used to login admin.
  *      requestBody:
@@ -76,15 +80,13 @@ userRoutes.post('/signup', userSignupValidation, userSignup);
 
 userRoutes.post('/login', userLoginValidation, userLogin);
 
-
-
-
 userRoutes.get('/verifytoken/:token', userVerifiedEmail);
 
 // ................... verify otp..................
+
 /**
  * @swagger
- * /auth/user/api/otpverify:
+ * /api/auth/user/otpVerify:
  *    post:
  *      summary: used to login admin.
  *      requestBody:
@@ -106,11 +108,19 @@ userRoutes.get('/verifytoken/:token', userVerifiedEmail);
  *          404:
  *              description : Bad request
  */
-userRoutes.post('/otpverify', otpVerifyValidation, verifyOtp);
+
+userRoutes.post('/otpVerify', verifyOtp);
 
 
-userRoutes.put('/forgot_password/:id',sellerTokenVarify,roleCheack(roles),updatePassword)
 
 
+
+
+userRoutes.put(
+  '/forgot_password/:id',
+  sellerTokenVarify,
+  roleCheack(roles),
+  updatePassword
+);
 
 module.exports = { userRoutes };

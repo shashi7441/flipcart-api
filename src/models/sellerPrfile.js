@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 const sellerProfileSchema = new mongoose.Schema(
   {
-    sellerId: String,
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     adharCardNumber: {
       type: String,
       default: null,

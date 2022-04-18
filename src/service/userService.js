@@ -14,6 +14,33 @@ exports.Crypto_token = () => {
   return crypto.randomBytes(64).toString('hex');
 };
 
+exports.updatePassword = async (req, res) => {
+  const _id = req.params.id;
+  console.log(_id);
+  try {
+    const newPassword = req.body.password;
+    // let newPassword = password.toString();
+    const bcryptPassword = async (newPassword) => {
+      const pass = await bcrypt.hash(newPassword, 10);
+      return pass;
+    };
+    const response = await bcryptPassword(newPassword);
+    // req.body.password = response;
+    const result = await User.updateOne(
+      { _id: _id },
+      { password: response },
+      { new: true }
+    );
+    // notifier.notify("Password update successfully")
+    res.json({
+      success: true,
+      message: 'password uppdated successfully',
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 // .............mail send...............
 exports.sendMail = async (req, resultToken, userHtmlTemplate) => {
   try {
@@ -96,20 +123,28 @@ exports.verifyOtp = async (req, res) => {
     const otp = req.body.otp;
     console.log('my otp is ', otp);
     const user = await User.findOne({ phone: contact });
+    const currentTime = Date.now();
     if (user) {
       if (user.role === 'user') {
-        if (user.otp === otp) {
-          await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
-          res.status(200).json({
-            message: 'user verfified successful',
-            status: 200,
-            success: true,
-          });
+        if (user.resetTime >= currentTime) {
+          if (user.otp === otp) {
+            await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
+            res.status(200).json({
+              message: 'user verfified successful',
+              status: 200,
+              success: true,
+            });
+          } else {
+            res.status(401).json({
+              message: 'invalid otp',
+              status: 401,
+              success: false,
+            });
+          }
         } else {
-          res.status(401).json({
-            message: 'invalid otp',
-            status: 401,
+          res.json({
             success: false,
+            message: 'your otp will be expire',
           });
         }
       } else {
@@ -162,20 +197,6 @@ exports.otp = async (req, res, result) => {
     }
   } catch (err) {
     console.log(err);
-  }
-};
-
-exports.sellerPresent = async (req) => {
-  try {
-    if (req.body.email) {
-      const user = await User.findOne({ email: req.body.email });
-      return user;
-    } else {
-      const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
-      return user;
-    }
-  } catch (err) {
-    return err;
   }
 };
 

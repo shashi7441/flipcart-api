@@ -15,7 +15,8 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const productRoutes = require('./src/routes/productRoutes');
 const { database } = require('./src/config/db');
-const sellerProfileRoutes = require('./src/routes/sellerProfileRoute');
+const orderRoutes = require('./src/routes/orderRoutes')
+// const sellerProfileRoutes = require('./src/routes/sellerProfileRoute');
 const brandRoutes = require('./src/routes/brand');
 const categoryRoutes = require('./src/routes/category');
 const { routeCheck } = require('./src/controller/adminController');
@@ -72,15 +73,13 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname + '/src/views'));
-
-// app.use(express.static(path.join(__dirname, '/src/image')));
-
+app.use('/api/user', orderRoutes)
 app.use(express.static(path.join(__dirname, './src/views')));
 app.use('/api/auth/admin', adminRoutes);
 app.use('/api/auth/seller', sellerRoutes);
 app.use('/api/auth/user', userRoutes);
-app.use('/api/seller', sellerProfileRoutes);
-app.use('/api/address', addressRoutes);
+// app.use('/api/seller', sellerProfileRoutes);
+app.use('/api', addressRoutes);
 app.use('/api', productRoutes);
 app.use('/api', brandRoutes);
 app.use('/api', categoryRoutes);

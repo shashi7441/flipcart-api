@@ -1,15 +1,15 @@
 const Cart = require('../models/addTOCart');
 const Product = require('../models/product');
-const Redis = require('ioredis');
-const { json } = require('body-parser');
-const redis = new Redis();
-new Redis({
-  port: 6379, // Redis port
-  host: '127.0.0.1', // Redis host
-  username: 'default', // needs Redis >= 6
-  password: 'my-top-secret',
-  db: 0, // Defaults to 0
-});
+// const Redis = require('ioredis');
+// const { get } = require('../routes/category');
+// const redis = new Redis();
+// new Redis({
+//   port: 6379, // Redis port
+//   host: '127.0.0.1', // Redis host
+//   username: 'default', // needs Redis >= 6
+//   password: 'my-top-secret',
+//   db: 0, // Defaults to 0
+// });
 
 exports.addToCart = async (req, res) => {
   try {
@@ -47,8 +47,8 @@ exports.addToCart = async (req, res) => {
             // const newObj = { ...result };
             // console.log('newObj', newObj);
             console.log('result', result);
-            const setData = await redis.set('my_value', result);
-            console.log('>>>>>>>>>>', setData);
+            // const setData = await redis.set('my_value', result);
+            // console.log('>>>>>>>>>>', setData);
             res.json({
               success: true,
               totalPrice: totalPrice,
@@ -89,7 +89,7 @@ exports.deleteCart = async (req, res) => {
     console.log('hiiiiiiiiiiiiiiiiiiii');
     const _id = req.params.id;
     const cartData = await Cart.findOneAndDelete({ _id });
-    redis.del('my_value');
+    // redis.del('my_value');
     res.json({
       success: true,
       message: 'cart deleted successfully',
@@ -123,8 +123,8 @@ exports.incrementAndDecrement = async (req, res) => {
         if (cartData.quantity < productData.quantity) {
           cartData.quantity += 1;
           await cartData.save();
-          const setData = await redis.set('my_value', cartData);
-          console.log('setDAta in put', setData);
+          // const setData = await redis.set('my_value', cartData);
+          // console.log('setDAta in put', setData);
           const findData = await Cart.findOne({ _id, createdBy: req.id });
           productsData.map((element) => {
             const totalPrice = element.price * cartData.quantity;
@@ -146,7 +146,7 @@ exports.incrementAndDecrement = async (req, res) => {
           cartData.quantity -= 1;
           await cartData.save();
           const setData = await redis.set('my_value', cartData);
-          console.log('in decrement', setData);
+          // console.log('in decrement', setData);
           const findData = await Cart.findOne({ _id, createdBy: req.id });
           const productsData = await Product.find({ _id: cartData.ProductId });
           productsData.map((element) => {
@@ -191,22 +191,28 @@ exports.allCart = async (req, res, next) => {
     price += i.quantity * i.ProductId.price;
   }
   const getData = await redis.get('my_value');
-
-  console.log('>>>>>>>>>>>>>', getData);
-  res.json({
-    success: true,
-    status: 200,
-    message: 'data found',
-    totalPrice: price,
-    data: allCart,
-  });
+  if (getData == null) {
+    res.json({
+      success: true,
+      status: 200,
+      message: 'data found',
+      totalPrice: price,
+      data: allCart,
+    });
+  } else {
+    res.json({
+      success: true,
+      status: 200,
+      data: getData,
+    });
+  }
 };
 
 exports.deleteAllCart = async (req, res) => {
   try {
     const _id = req.id;
     const deleteAll = await Cart.deleteMany({ createdBy: _id });
-    // allData.remove();
+
     console.log(deleteAll);
 
     res.json({

@@ -1,5 +1,5 @@
 const express = require('express');
-require('dotenv').config()
+require('dotenv').config();
 const sellerRoutes = express.Router();
 const { signup, login } = require('../controller/sellerController');
 const { verifiedEmail, verifyOtp } = require('../service/sellerService');
@@ -8,10 +8,10 @@ const {
   sellerLoginValidation,
   otpVerifyValidation,
 } = require('../middleware/middleware');
-const{updatePassword} = require('../service/sellerService')
-const{sellerTokenVarify} = require('../service/adminService')
-const{roleCheack} = require('../utility/role')
-const roles = process.env.SELLER_ROLE
+const { updatePassword } = require('../service/sellerService');
+const { sellerTokenVarify } = require('../service/adminService');
+const { roleCheack } = require('../utility/role');
+const roles = process.env.SELLER_ROLE;
 // ............ seller signup ................
 /**
  * @swagger
@@ -85,9 +85,12 @@ sellerRoutes.get('/verifytoken/:token', verifiedEmail);
  */
 sellerRoutes.post('/login', sellerLoginValidation, login);
 
-// .......................working continue............!!!!!!!!!!!!!!!!!!!!!!!!1
-
-sellerRoutes.put('/forgot_password/:id',sellerTokenVarify,roleCheack(roles),updatePassword)
+sellerRoutes.put(
+  '/forgot_password/:id',
+  sellerTokenVarify,
+  roleCheack(roles),
+  updatePassword
+);
 //  ................otp verify..................
 /**
  * @swagger

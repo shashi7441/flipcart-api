@@ -10,9 +10,9 @@ const {
 } = require('../controller/brandController');
 const { brandValidation } = require('../middleware/middleware');
 const { sellerTokenVarify } = require('../service/adminService');
-const { fileAndBodyAcceptForSingleImage } = require('../utility/multer');
-const { roleCheack } = require('../utility/role');
-const roles = process.env.SELLER_ROLE;
+const { fileAndBodyAccept } = require('../utility/multer');
+const { multiRoleCheack } = require('../utility/role');
+const  s1 = "seller"
 
 //........................create Brand..................
 /**
@@ -61,8 +61,8 @@ const roles = process.env.SELLER_ROLE;
 brandRoutes.post(
   '/brand',
   sellerTokenVarify,
-  roleCheack(roles),
-  fileAndBodyAcceptForSingleImage,
+  multiRoleCheack(s1),
+ fileAndBodyAccept,
   brandValidation,
   createBrand
 );
@@ -88,7 +88,7 @@ brandRoutes.post(
  *              description : Bad request
  */
 
-brandRoutes.get('/brand', sellerTokenVarify, roleCheack(roles), showBrand);
+brandRoutes.get('/brand', sellerTokenVarify, multiRoleCheack(s1), showBrand);
 
 // .................update Brand.....................
 /**
@@ -137,8 +137,8 @@ brandRoutes.get('/brand', sellerTokenVarify, roleCheack(roles), showBrand);
 brandRoutes.put(
   '/brand/:id',
   sellerTokenVarify,
-  roleCheack(roles),
-  fileAndBodyAcceptForSingleImage,
+  multiRoleCheack(s1),
+ fileAndBodyAccept,
   updateBrand
 );
 
@@ -167,7 +167,7 @@ brandRoutes.put(
 brandRoutes.delete(
   '/brand/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(s1),
   deleteBrand
 );
 

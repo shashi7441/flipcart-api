@@ -3,7 +3,6 @@ const otpGenerator = require('otp-generator');
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilio = require('twilio');
-const { sellerPresent } = require('../service/sellerService');
 const User = require('../models/user');
 const { sendMail, Crypto_token, otp } = require('../service/sellerService');
 const bcrypt = require('bcrypt');
@@ -11,8 +10,10 @@ const jwt = require('jsonwebtoken');
 const { htmlTemplate } = require('../utility/mailTemplate');
 exports.signup = async (req, res) => {
   try {
+
+    const {email, fullName, phone, password} = req.body
     const find = await User.findOne({
-      email: req.body.email,
+      email: email,
     });
     if (!find) {
       req.body.role = 'seller';
@@ -28,18 +29,18 @@ exports.signup = async (req, res) => {
       }
 
       return res.json({
-        success: true,
-        message: 'user register successful',
+        statusCode:200,
+        message: 'seller register successful',
       });
     } else {
-      res.json({
-        success: false,
-        message: ' user already exist',
+    return   res.json({
+      statusCode:400,
+        message:`${email} already exist`,
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+   return  res.json({
+    statusCode:400,
       message: e.message,
     });
   }
@@ -52,8 +53,8 @@ sellerEmaillog = async (req, res) => {
       email: req.body.email,
     });
     if (!result) {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode:400,
         message: 'data not found please signup',
       });
     }
@@ -72,7 +73,7 @@ sellerEmaillog = async (req, res) => {
                   process.env.SECRET_KEY,
                   { expiresIn: '24h' }
                 );
-                res.status(200).json({
+            return    res.status(200).json({
                   success: true,
                   status: 200,
                   message: 'Login Successfully ',
@@ -80,35 +81,35 @@ sellerEmaillog = async (req, res) => {
                 });
               }
             } else {
-              res.status(409).json({
+              return res.status(409).json({
                 success: false,
                 status: 409,
                 message: 'Enter Correct Password',
               });
             }
           } else {
-            res.json({
-              success: false,
+          return  res.json({
+            statusCode:400,
               message:
                 'you are not approved by admin so not login please approve by admin ',
             });
           }
         } else {
-          res.json({
-            success: false,
+        return  res.json({
+          statusCode:400,
             message: 'you are not  verified ',
           });
         }
       } else {
-        res.json({
-          success: false,
+       return res.json({
+        statusCode:400,
           message: 'you are not seller',
         });
       }
    
   } catch (e) {
-    res.json({
-      success: false,
+   return res.json({
+    statusCode:400,
       message: e.message,
     });
   }
@@ -122,9 +123,9 @@ sellerPhoneLog = async (req, res) => {
       role: 'seller',
     });
     if (!result) {
-      res.json({
-        success: false,
-        message: 'user not found please signup',
+      return res.json({
+        statusCode:400,
+        message: 'seller not found please signup',
       });
     }
 
@@ -146,7 +147,7 @@ sellerPhoneLog = async (req, res) => {
                     process.env.SECRET_KEY,
                     { expiresIn: '24h' }
                   );
-                  res.status(200).json({
+               return   res.status(200).json({
                     success: true,
                     status: 200,
                     message: 'Login Successfully ',
@@ -154,41 +155,41 @@ sellerPhoneLog = async (req, res) => {
                   });
                 }
               } else {
-                res.status(409).json({
+              return res.status(409).json({
                   success: false,
                   status: 409,
                   message: 'Enter Correct Password',
                 });
               }
             } else {
-              res.json({
-                success: false,
+             return res.json({
+              statusCode:400,
                 message:
                   'you are not approved by admin so not login please approve by admin ',
               });
             }
           } else {
-            res.status(400).json({
-              success: false,
+            return res.status(400).json({
+              statusCode:400,
               message: ' please verify otp',
             });
           }
         } else {
-          res.status(400).json({
-            success: false,
+         return res.status(400).json({
+          statusCode:400,
             message: 'please verify your email',
           });
         }
       } else {
-        res.json({
-          success: false,
+    return    res.json({
+      statusCode:400,
           message: 'you are not seller',
         });
       }
     
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -196,7 +197,6 @@ sellerPhoneLog = async (req, res) => {
 
 exports.login = async (req, res) => {
   if (req.body.email) {
-    console.log('hiiiiiiiii');
     sellerEmaillog(req, res);
   } else {
     sellerPhoneLog(req, res);

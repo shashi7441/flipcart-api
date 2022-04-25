@@ -10,24 +10,24 @@ exports.cheackBrandCategory = async (req, res , next) => {
     const brandData = await Brand.findOne({ _id: req.body.brandId });
     if (!brandData) {
       return res.json({
-        success: false,
-        message: 'invalid credential',
+        statusCode:400,
+        message: 'brand not found ',
       });
     } else if (brandData.isActive == false) {
       return res.json({
-        success: false,
+        statusCode:400,
         message: 'invalid credential',
       });
     }
 
     if (!categoryData) {
       return res.json({
-        success: false,
-        message: 'invalid credential',
+        statusCode:400,
+        message: 'category not found ',
       });
     } else if (categoryData.isActive == false) {
       return res.json({
-        success: false,
+        statusCode:400,
         message: 'invalid credential',
       });
     }
@@ -35,7 +35,7 @@ exports.cheackBrandCategory = async (req, res , next) => {
 
   } catch (e) {
     return res.json({
-      success: false,
+      statusCode:400,
       data: e.message,
     });
   }
@@ -97,7 +97,7 @@ exports.productFields = (req) => {
     }
   } catch (e) {
     return {
-      success: false,
+      statusCode:400,
       message: e.message,
     };
   }

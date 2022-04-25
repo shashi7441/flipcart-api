@@ -12,8 +12,8 @@ const brandSchema = new mongoose.Schema(
       default: true,
     },
     image: {
-      type: String,
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Photo',
     },
     createdAt: {
       type: Date,
@@ -22,7 +22,8 @@ const brandSchema = new mongoose.Schema(
       type: Date,
     },
     createdBy: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
   },
   { timestamps: true }

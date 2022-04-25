@@ -4,23 +4,24 @@ const productRoutes = express.Router();
 
 const {
   createProduct,
-  getAllProducts,
   updateProducts,
+  getAllProductsForPublic,
   deleteProducts,
-  showOneProduct,
-  redis_product,
+  isApproved,
+  getAllProduct,
+  showOneProductForPublic,
 } = require('../controller/productController.js');
 const {
   productValidation,
-  productUpdateValidation,
 } = require('../middleware/middleware');
 const { sellerTokenVarify } = require('../service/adminService');
-const { roleCheack } = require('../utility/role');
-const { uploadImg, fileAndBodyAccept } = require('../utility/multer');
+const { multiRoleCheack } = require('../utility/role');
+const {fileAndBodyAccept } = require('../utility/multer');
 const { cheackBrandCategory } = require('../service/productService.js');
 
-const roles = process.env.SELLER_ROLE;
-
+const s1  = "seller";
+const a1 = 'admin';
+const u1 = "user"
 //..................create Product...........
 
 /**
@@ -80,12 +81,15 @@ const roles = process.env.SELLER_ROLE;
 productRoutes.post(
   '/product',
   sellerTokenVarify,
-  roleCheack(roles),
+multiRoleCheack(s1),
   fileAndBodyAccept,
   productValidation,
   cheackBrandCategory,
   createProduct
 );
+
+
+
 // .................In product get api..............................
 /**
  * /api/product:
@@ -112,12 +116,7 @@ productRoutes.post(
  *              description : Bad request
  */
 
-productRoutes.get(
-  '/product',
-  sellerTokenVarify,
-  roleCheack(roles),
-  getAllProducts
-);
+
 
 // ........................In product update api.....................
 /**
@@ -177,7 +176,7 @@ productRoutes.get(
 productRoutes.put(
   '/product/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(s1),
   fileAndBodyAccept,
   updateProducts
 );
@@ -205,7 +204,7 @@ productRoutes.put(
 productRoutes.delete(
   '/product/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(s1),
   deleteProducts
 );
 //  ............................in Product api get one product..................
@@ -231,9 +230,18 @@ productRoutes.delete(
 
 productRoutes.get(
   '/product/:id',
+  showOneProductForPublic
+);
+
+productRoutes.get('/product', sellerTokenVarify, multiRoleCheack(a1,s1, u1 ),  getAllProduct)
+
+productRoutes.get('/product', getAllProductsForPublic)
+
+productRoutes.patch(
+  '/product/:id',
   sellerTokenVarify,
-  roleCheack(roles),
-  showOneProduct
+  multiRoleCheack(a1),
+  isApproved
 );
 
 module.exports = productRoutes;

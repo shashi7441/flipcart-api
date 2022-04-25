@@ -1,5 +1,5 @@
 const Category = require('../models/category');
-const { uploadSingleImage } = require('../utility/multer');
+const { uploadImagesForCategory } = require('../utility/multer');
 const {
   createCategoryPhoto,
   deleteCategoryPhoto,
@@ -8,100 +8,86 @@ const {
 } = require('../service/categoryServices');
 
 const Photo = require('../models/image');
+
 exports.updateCategory = async (req, res) => {
   try {
-    console.log('111111111111111111111');
     const { category, image } = req.body;
     const _id = req.params.id;
-    const data = await Category.findOne({ _id, isActive: true });
+    const data = await Category.findOne({ _id: _id });
+    if (!data) {
+      return res.json({
+        statusCode:400,
+        message: 'category not found',
+      });
+    }
+
     req.category_Id = data._id;
     if (Object.entries(req.body).length == 0) {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode:400,
         message: ' please fill the field',
       });
     }
-    if (data) {
-      req.updateImageId = data.image;
-      console.log(req.files);
-      if (req.files) {
-        const newResult = await Photo.findOne({ categoryId: req.category_Id });
-        console.log('newresult', newResult);
-        if (newResult) {
-          const result = await Category.findOneAndUpdate(
-            { _id: _id },
-            { image },
-            { new: true }
-          );
-          await updateCategoryPhoto(req, res);
-        } else {
-          await uploadSingleImage(req, res);
-          await createAndUpdateCategoryPhoto(req, res);
-          const newData = await Category.findOneAndUpdate(
-            { _id: _id },
-            { image: req.photo_id },
-            { new: true }
-          );
-        }
+
+    if (req.files) {
+      if (req.files.length > 1) {
+        return res.json({
+          statusCode:400,
+          message: 'upload only single image',
+        });
       }
-      if (req.body) {
-        if (req.files) {
-          if (req.files.length > 0) {
-            const newResult = await Photo.findOne({
-              categoryId: req.category_Id,
-            });
-            if (newResult) {
-              const result = await Category.findOneAndUpdate(
-                { _id: _id },
-                { image },
-                { new: true }
-              );
-              // await updatePhoto(req, res);
-              await updateCategoryPhoto(req, res);
-            } else {
-              // ...............................working..........................
-              await uploadSingleImage(req, res);
-              await createAndUpdateCategoryPhoto(req, res);
-              // await uploadImges(req, res);
-              // await createAndUpdatePhoto(req, res);
-              const newData = await Category.findOneAndUpdate(
-                { _id: _id },
-                { image: req.photo_id },
-                { new: true }
-              );
-            }
-          }
-        }
-        if (req.body) {
-          const { category } = req.body;
-          const result = await Category.findOneAndUpdate(
-            { _id: _id },
-            {
-              category,
-            },
-            { new: true }
-          );
-          const categoryFind = await Category.findOne({
-            category: req.body.category,
-          })
-            .populate('image', 'image.url')
-            .populate('createdBy', 'fullName');
-          return res.json({
-            success: true,
-            message: 'updated successfully',
-            data: categoryFind,
-          });
-        }
+    }
+
+    req.updateImageId = data.image;
+    if (req.files) {
+      const newResult = await Photo.findOne({ categoryId: req.category_Id });
+      if (newResult) {
+        await updateCategoryPhoto(req, res);
+      } else {
+        await uploadImagesForCategory(req, res);
+        await createAndUpdateCategoryPhoto(req, res);
+        const newData = await Category.findOneAndUpdate(
+          { _id: _id },
+          { image: req.photo_id },
+          { new: true }
+        );
+        const categoryFind = await Category.findOne({
+          category: req.body.category,
+        })
+          .populate('image', 'image.url')
+          .populate('createdBy', 'fullName');
+        return res.json({
+          statusCode:200,
+          message: 'updated successfully',
+          data: categoryFind,
+        });
       }
-    } else {
-      res.json({
-        succes: false,
-        message: ' category not found',
+    }
+    if (req.body) {
+      const { category } = req.body;
+      const result = await Category.findOneAndUpdate(
+        { _id: _id },
+        {
+          category,
+        },
+        { new: true }
+      );
+      const categoryFind = await Category.findOne({
+        category: req.body.category,
+      })
+        .populate('image', 'image.url')
+        .populate('createdBy', 'fullName');
+      return res.json({
+        statusCode:200,
+        message: 'updated successfully',
+        data: categoryFind,
       });
     }
   } catch (e) {
+    console.log(e);
+
     res.json({
-      succes: false,
+      statusCode:400,
       data: e.message,
     });
   }
@@ -109,26 +95,31 @@ exports.updateCategory = async (req, res) => {
 
 exports.createCategory = async (req, res) => {
   const { category, image } = req.body;
-  console.log('>>>>>>>>>>>>>>', req.files);
-  // console.log('in category', category);
   try {
     const findData = await Category.findOne({
       category: req.body.category,
     });
 
-    if (!findData) {
+    if (findData) {
+      return res.json({
+        statusCode:400,
+        message: 'already exists',
+      });
+    }
+    if (req.files) {
+      if (req.files.length > 1) {
+        return res.json({
+          statusCode:400,
+          message: 'you can upload only one file',
+        });
+      }
       if (!req.files.length == 0) {
-        console.log('00000000000000000000');
-        await uploadSingleImage(req, res);
+        await uploadImagesForCategory(req, res);
         await createCategoryPhoto(req, res);
       }
     }
-    console.log('req.body', req.body);
-
     if (req.body) {
-      console.log('11111111111111111111111111');
       if (!req.results) {
-        console.log('22222222222222222222222222222');
         const findData = await Category.findOne({
           category: req.body.category,
         });
@@ -138,19 +129,19 @@ exports.createCategory = async (req, res) => {
             createdBy: req.id,
           });
           const result = await createDocument.save();
-          res.json({
-            success: true,
+          const categoryFind = await Category.findOne({
+            category: req.body.category,
+          })
+            .populate('image', 'image.url')
+            .populate('createdBy', 'fullName');
+
+          return res.json({
+            statusCode:200,
             message: 'category created successful',
-            data: result,
-          });
-        } else {
-          res.json({
-            success: false,
-            message: 'already exists',
+            data: categoryFind,
           });
         }
       } else {
-        console.log('33333333333333333333333333333333');
         const findData = await Category.findOne({
           category: req.body.category,
         });
@@ -162,29 +153,28 @@ exports.createCategory = async (req, res) => {
           });
           const result = await createDocument.save();
           const categoryFind = await Category.findOne({
-            category: req.body.category,
+            category: category,
           })
             .populate('image', 'image.url')
             .populate('createdBy', 'fullName');
           req.results.categoryId = result._id;
           req.results.save();
-          res.json({
-            success: true,
+          return res.json({
+            statusCode:200,
             message: 'category created successful',
             data: categoryFind,
           });
         } else {
-          res.json({
-            success: false,
+          return res.json({
+            statusCode:400,
             message: 'already exists',
           });
         }
       }
     }
   } catch (e) {
-    console.log(e);
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       data: e.message,
     });
   }
@@ -205,12 +195,12 @@ exports.showCategory = async (req, res) => {
       .populate('createdBy', 'fullName');
 
     res.json({
-      success: true,
+      statusCode:200,
       data: result,
     });
   } catch (e) {
     res.json({
-      success: false,
+      statusCode:400,
       message: e.message,
     });
   }
@@ -219,6 +209,13 @@ exports.deleteCategory = async (req, res) => {
   try {
     const _id = req.params.id;
     const findData = await Category.findOne({ _id });
+    if (!findData) {
+      return res.json({
+        statusCode:400,
+        message: 'catogory not found',
+      });
+    }
+
     console.log(findData.image);
     if (!findData.isActive == false) {
       const test = findData.image;
@@ -228,7 +225,7 @@ exports.deleteCategory = async (req, res) => {
       findData.image = null;
       findData.save();
       return res.json({
-        succes: true,
+        statusCode:200,
         message: 'categoty deleted successfully',
       });
     } else {
@@ -239,7 +236,7 @@ exports.deleteCategory = async (req, res) => {
     }
   } catch (e) {
     res.json({
-      success: false,
+      statusCode:400,
       message: e.message,
     });
   }

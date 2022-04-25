@@ -2,9 +2,8 @@ const User = require('../models/user');
 
 exports.roleCheack = (roles) => {
   return async (req, res, next) => {
-    console.log('in roleCheack', req.id);
     // console.log('in varify', roles.includes());
-    const data = await User.findOne({ _id: req.id });
+    const data = await User.findOne({ _id: req._id });
     if (data) {
       if (roles == data.role) {
         return next();
@@ -25,22 +24,20 @@ exports.roleCheack = (roles) => {
 
 exports.multiRoleCheack = (a1, s1, u1) => {
   return async (req, res, next) => {
-    // console.log('in roleCheack', req.id);
-    // console.log('in varify', roles.includes());
     const data = await User.findOne({ _id: req.id });
     if (data) {
       if (a1 == data.role || s1 == data.role || u1 == data.role) {
         return next();
       } else {
-       return  res.json({
-          success: false,
+        return res.json({
+          statusCode: 401,
           message: `${data.role} ${data.fullName} you are not allowed to access this api `,
         });
       }
     } else {
-      res.json({
-        success: false,
-        message: 'User is not available',
+      return res.json({
+        statusCode:400,
+        message: 'data not available',
       });
     }
   };

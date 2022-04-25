@@ -7,37 +7,46 @@ const {
   showOneOrder,
   showAllOrder,
   stateChange,
+  deliverProduct,
+  changeDate
+
 } = require('../controller/orderController');
 const { orderValidation } = require('../middleware/orderMiddleware');
 const { sellerTokenVarify } = require('../service/adminService');
-const { roleCheack, multiRoleCheack } = require('../utility/role');
-const roles = process.env.USER_ROLE;
+const { multiRoleCheack } = require('../utility/role');
 const a1 = 'admin';
+const s1 = "seller";
+const u1 = "user"
 orderRoutes.post(
   '/order',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   orderValidation,
   order
 );
 orderRoutes.put(
   '/order/:id',
   sellerTokenVarify,
-  multiRoleCheack(a1),
+  multiRoleCheack(s1),
   stateChange
 );
+
 orderRoutes.delete(
   '/order/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   cancelOrder
 );
+
 orderRoutes.get(
   '/order/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   showOneOrder
 );
-orderRoutes.get('/order', sellerTokenVarify,roleCheack(roles), showAllOrder);
+orderRoutes.patch('/order/deliver/:id', sellerTokenVarify, multiRoleCheack(a1), deliverProduct)
+
+orderRoutes.patch('/order/:date' , sellerTokenVarify, multiRoleCheack(u1), changeDate )
+
 
 module.exports = orderRoutes;

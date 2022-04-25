@@ -1,15 +1,37 @@
+const express = require('express');
 
-const express = require('express')
+const reviewRoutes = express.Router();
+const {
+  addReview,
+  deleteReview,
+  getAllReview,
+  getReviewForUser,
+} = require('../controller/reviewController');
+const { multiRoleCheack } = require('../utility/role');
+const { fileAndBodyAccept } = require('../utility/multer');
+const { sellerTokenVarify } = require('../service/adminService');
+const { reviewValidation } = require('../middleware/reviewMiddleware');
+const u1 = 'user';
+reviewRoutes.post(
+  '/review',
+  sellerTokenVarify,
+  multiRoleCheack(u1),
+  reviewValidation,
+  addReview
+);
+reviewRoutes.get('/review/:id', getAllReview);
+reviewRoutes.get(
+  '/review',
+  sellerTokenVarify,
+  multiRoleCheack(u1),
+  getReviewForUser
+);
 
-const reviewRoutes = express.Router()
-const{addReview} = require('../controller/reviewController') 
-const {roleCheack} = require('../utility/role')
-const{sellerTokenVarify} = require('../service/adminService')
-const roles = "user"
-reviewRoutes.post('/review' , sellerTokenVarify , roleCheack(roles), addReview )
+reviewRoutes.delete(
+  '/review/:id',
+  sellerTokenVarify,
+  multiRoleCheack(u1)
+,  deleteReview
+);
 
-
-
-
-
-module.exports = reviewRoutes
+module.exports = reviewRoutes;

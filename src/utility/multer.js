@@ -65,146 +65,93 @@ exports.fileAndBodyAccept = (req, res, next) => {
   });
 };
 
-// ..........single image accept...................
-exports.fileAndBodyAcceptForSingleImage = (req, res, next) => {
-  const storage = multer.diskStorage({
-    filename: (req, file, cb) => {
-      cb(null, Date.now() + file.fieldname + path.extname(file.originalname));
-    },
-  });
-  const upload = multer({
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-      if (
-        file.mimetype == 'image/png' ||
-        file.mimetype == 'image/jpg' ||
-        file.mimetype == 'image/jpeg'
-      ) {
-        cb(null, true);
-      } else {
-        // cb(null, false);
-        // return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
-        res.json({
-          success: false,
-          message:
-            '!.......... wrong file upload....... only png , jpg , jpeg file is accepted',
-        });
-      }
-    },
-    limits: { fileSize: 1024 * 1024 },
-  }).array('image', 1);
-  upload(req, res, (e) => {
-    if (e) {
-      res.json({
-        success: false,
-        data: e.message,
-      });
-      req.files = req.file || req.files;
-    }
-    next();
-  });
-};
 
-exports.uploadSingleImage = async (req, res) => {
-  try {
-    // const file = req.files;
-    // console.log(req.file);
-    const path = req.files.path;
-    // console.log('path', path);
-    const fileName = req.files.filename;
-
-    for (let file of req.files) {
-      const urls = [];
-      const { path } = file;
-      console.log("path",path);
-      await cloudinary.uploader.upload(path, (e, result) => {
-        console.log('1000000000000000000', result);
+exports.uploadImges = async (req, res) => {
+  const urls = [];
+  for (let file of req.files) {
+    const { path } = file;
+    await cloudinary.uploader.upload(
+      `${path}`,
+      { folder: 'reviewPic' },
+      (e, result) => {
+        // console.log(result, e);
         const { url, public_id } = result;
         const newPush = {};
         // console.log('result', result);
         newPush.url = url;
         newPush.public_id = public_id;
         urls.push(newPush);
-        req.singleImage = urls
-      });
-    }
-
-  } catch (e) {
-    res.json({
-      success: false,
-      data: e.message,
-    });
-    console.log(e);
+        // console.log(newPush);;
+      }
+    );
   }
-};
-
-// exports.uploadSingleImage = async (req, res) => {
-//   try {
-//     const file = req.file;
-//     // console.log(req.file);
-//     const path = req.file.path;
-//     // console.log('path', path);
-//     const fileName = req.file.filename;
-//     await cloudinary.uploader.upload(`${path}`, (e, result) => {
-//       req.my_cloudinaryId = result.public_id;
-//       // console.log(req.cloudinaryId);
-//       req.my_url = result.url;
-//       // console.log(req.url);
-//       // console.log('error', e);
-//     });
-//   } catch (e) {
-//     res.json({
-//       success: false,
-//       data: e.message,
-//     });
-//     console.log(e);
-//   }
-// };
-
-// ............ upload multiple images........................
-
-exports.uploadImges = async (req, res) => {
-  const urls = [];
-  for (let file of req.files) {
-    const { path } = file;
-    await cloudinary.uploader.upload(`${path}`, (e, result) => {
-      // console.log(result, e);
-      const { url, public_id } = result;
-      const newPush = {};
-      // console.log('result', result);
-      newPush.url = url;
-      newPush.public_id = public_id;
-      urls.push(newPush);
-      // console.log(newPush);;
-    });
-  }
-  // console.log("in loop", urls);
-
-  // console.log('in next out of loop upon>>>>>>111111111111', urls);
   req.images = urls;
 };
 
-// const formValidation = multer.diskStorage({
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + file.fieldname + path.extname(file.originalname));
-//   },
-// });
-
-// const upload = multer({
-//   fileFilter: (req, file, cb) => {
-//     if (
-//       file.mimetype == 'image/png' ||
-//       file.mimetype == 'image/jpg' ||
-//       file.mimetype == 'image/jpeg'
-//     ) {
-//       cb(null, true);
-//     } else {
-//       res.json({
-//         success: false,
-//         message:
-//           '!.......... wrong file upload....... only png , jpg , jpeg file is accepted',
-//       });
-//     }
-//   },
-//   limits: { fileSize: 1024 * 1024 },
-// }).array('image', 9);
+exports.uploadImagesForProduct = async (req, res) => {
+  const urls = [];
+  for (let file of req.files) {
+    const { path } = file;
+    await cloudinary.uploader.upload(
+      `${path}`,
+      { folder: 'productPic' },
+      (e, result) => {
+        const { url, public_id } = result;
+        const newPush = {};
+        // console.log('result', result);
+        newPush.url = url;
+        newPush.public_id = public_id;
+        urls.push(newPush);
+        // console.log(newPush);;
+      }
+    );
+  }
+  req.images = urls;
+};
+exports.uploadImagesForCategory = async (req, res) => {
+  const urls = [];
+  for (let file of req.files) {
+    const { path } = file;
+    await cloudinary.uploader.upload(
+      `${path}`,
+      { folder: 'categoryPic' },
+      (e, result) => {
+       if(e){
+         return res.json({
+          success:false,
+          message:e.message
+         })
+       }
+        const { url, public_id } = result;
+        const newPush = {};
+        // console.log('result', result);
+        newPush.url = url;
+        newPush.public_id = public_id;
+        urls.push(newPush);
+        // console.log(newPush);;
+      }
+    );
+  }
+  req.images = urls;
+};
+exports.uploadImagesForBrand = async (req, res) => {
+  const urls = [];
+  for (let file of req.files) {
+    const { path } = file;
+    await cloudinary.uploader.upload(
+      `${path}`,
+      { folder: 'brandPic' },
+      (e, result) => {
+        // console.log(result, e);
+        const { url, public_id } = result;
+        const newPush = {};
+        // console.log('result', result);
+        newPush.url = url;
+        newPush.public_id = public_id;
+        urls.push(newPush);
+        // console.log(newPush);;
+      }
+    );
+  }
+  req.images = urls;
+};

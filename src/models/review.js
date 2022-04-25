@@ -4,6 +4,10 @@ const reviewSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
   },
+  title:{
+    type:String,
+    default:null
+  },
   comment: {
     type: String,
     default: null,
@@ -17,6 +21,6 @@ const reviewSchema = mongoose.Schema({
   },
 });
 
-const Review = mongoose.model('Review', reviewSchema)
+const Review = mongoose.model('Review', reviewSchema);
 
-module.exports = Review
+module.exports = Review;

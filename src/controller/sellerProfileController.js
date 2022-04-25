@@ -5,19 +5,19 @@ exports.getProfile = async (req, res) => {
   try {
     const data = await Sellerprofile.findOne({ _id: _id });
     if (!data) {
-      res.send({
-        success: false,
-        message: 'wrong data',
+      return res.send({
+        statusCode:400,
+        message: 'data not found',
       });
     } else {
-      res.send({
-        success: true,
+    return  res.send({
+      statusCode:200,
         data: data,
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+   return res.json({
+    statusCode:400,
       message: e.message,
     });
   }
@@ -32,42 +32,38 @@ exports.sellerProfileCreate = async (req, res) => {
       'sellerId',
       'fullName'
     );
-
-    console.log('sellerData', sellerData);
-    console.log('find', data);
-
     if (!data) {
       if (sellerData) {
         if (sellerData.role === 'seller') {
           req.body.isKyc = true;
           const create = await Sellerprofile(req.body);
           const result = await create.save();
-          res.json({
-            success: true,
+          return res.json({
+            statusCode:200,
             message: 'profile created successfuly',
             data: result,
           });
         } else {
-          res.json({
-            success: false,
+          return res.json({
+            statusCode:400,
             message: 'you are not seller',
           });
         }
       } else {
-        res.json({
-          success: false,
-          message: 'user not found',
+      return  res.json({
+        statusCode:400,
+          message: 'seller not found',
         });
       }
     } else {
-      res.json({
-        success: false,
+    return  res.json({
+      statusCode:400,
         message: 'profile already created',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+     return    res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -80,8 +76,8 @@ exports.sellerProfileUpdate = async (req, res) => {
     const seller = await User.findOne({ _id: req.body.sellerId });
     console.log('seller', seller);
     if (Object.entries(req.body).length == 0) {
-      res.json({
-        success: false,
+     return  res.json({
+      statusCode:400,
         message: ' please fill the field',
       });
     }
@@ -98,20 +94,20 @@ exports.sellerProfileUpdate = async (req, res) => {
       });
       const data = await Sellerprofile.findOne({ _id: _id });
 
-      res.json({
-        success: true,
-        message: 'update successfully',
+     return res.json({
+      statusCode:200,
+        message: 'profile update successfully',
         data: data,
       });
     } else {
-      res.json({
-        success: false,
-        message: 'not found',
+     return res.json({
+      statusCode:400,
+        message: 'data not found',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+   return res.json({
+    statusCode:400,
       data: e.message,
     });
   }

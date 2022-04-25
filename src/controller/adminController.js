@@ -12,12 +12,11 @@ adminLogin = async (req, res) => {
       email: req.body.email,
     });
     if (!result) {
-      res.json({
-        success: false,
-        message: 'invalid user',
+      return res.json({
+        statusCode:400,
+        message: 'admin not found',
       });
     }
-    console.log('result in admin login api', result);
     const passwordMatch = await bcrypt.compare(
       req.body.password,
       result.password
@@ -29,28 +28,26 @@ adminLogin = async (req, res) => {
           process.env.SECRET_KEY,
           { expiresIn: '24h' }
         );
-        res.status(200).json({
-          success: true,
+        return res.status(200).json({
           status: 200,
           message: 'Login Successfully ',
           data: jwtToken,
         });
       } else {
-        res.status(409).json({
-          success: false,
+        return res.status(409).json({
           status: 409,
-          message: 'Enter Correct Password  / you are not admin',
+          message: 'Enter Correct Password',
         });
       }
     } else {
-      res.json({
+      return res.json({
         status: 400,
         message: 'you are not admin',
       });
     }
   } catch (error) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: error.message,
     });
   }
@@ -60,8 +57,8 @@ exports.sellerReject = async (req, res) => {
     const _id = req.params.id;
     const userData = await User.findOne({ _id: _id, role: 'seller' });
     if (!userData) {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode:400,
         message: 'data not found',
       });
     }
@@ -72,19 +69,19 @@ exports.sellerReject = async (req, res) => {
         { isApproved: false },
         { new: true }
       );
-      res.json({
-        success: true,
-        message: 'updated successfully',
+      return res.json({
+        statusCode:200,
+        message: 'seller reject successfully',
       });
     } else {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode:400,
         message: 'wrong data',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -92,9 +89,8 @@ exports.sellerReject = async (req, res) => {
 
 exports.adminSignup = async (req, res) => {
   try {
-    const find = await User.findOne({
-      role: 'admin',
-    });
+    const find = await User.findOne({ role: 'admin' });
+    console.log(find);
     if (find == null) {
       req.body.role = 'admin';
       req.body.isVerified = true;
@@ -102,16 +98,16 @@ exports.adminSignup = async (req, res) => {
       req.body.otp = undefined;
       const createUser = await User(req.body);
       const result = await createUser.save();
-      res.json({
-        success: true,
-        message: 'user register successful',
+      return res.json({
+        statusCode:200,
+        message: 'admin register successful',
       });
     } else {
       adminLogin(req, res);
     }
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -122,17 +118,17 @@ exports.getAllSeller = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const fields = fieldsVisible(req);
     // console.log(fields);
-    const find = await User.find({ role: 'seller' }, fields)
+    const find = await User.find({ role: 'seller', isApproved: false }, fields)
       .limit(limit)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
     res.json({
-      success: true,
+      statusCode:200,
       data: find,
     });
   } catch (e) {
-    res.json({
-      success: false,
+ return   res.json({
+  statusCode:400,
       message: e.message,
     });
   }
@@ -140,8 +136,8 @@ exports.getAllSeller = async (req, res) => {
 
 exports.routeCheck = (req, res, next) => {
   res.json({
-    success: false,
-    message: ' 404 Page Not Found ',
+    statusCode:404,
+    message: 'Page Not Found ',
   });
   next();
 };

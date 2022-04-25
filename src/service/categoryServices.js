@@ -9,9 +9,9 @@ cloudinary.config({
 
 exports.createCategoryPhoto = async (req, res) => {
   try {
-    console.log('hiiiiiiiiiiiiiiiiiiiiii', req.singleImage);
+    // console.log('hiiiiiiiiiiiiiiiiiiiiii', req.singleImage);
     const create = await Photo({
-      image: req.singleImage,
+      image: req.images,
       categoryId: req.categoryId,
     });
 
@@ -19,7 +19,7 @@ exports.createCategoryPhoto = async (req, res) => {
     req.results = result;
   } catch (e) {
     res.json({
-      success: false,
+      statusCode:400,
       data: e.message,
     });
   }
@@ -40,23 +40,30 @@ exports.deleteCategoryPhoto = async (req, res) => {
     });
 
     user.remove();
-  } catch (e) {}
+  } catch (e) {
+    return res.json({
+      statusCode:400,
+      message:e.message
+    })
+
+
+  }
 };
 
 exports.createAndUpdateCategoryPhoto = async (req, res) => {
 try{
   const create = await Photo({
-    image: req.singleImage,
-    categoryId: req.categoryId,
-  });
+    image: req.images,
+    categoryId: req.category_Id
+  })
   const result = await create.save();
   console.log('res111111111111111111', result._id);
   req.photo_id = result._id;
 }
 catch(e){
 console.log("................",e);
-res.json({
-  success:false,
+return res.json({
+  statusCode:400,
   data:e.message
 })
 
@@ -80,16 +87,12 @@ exports.updateCategoryPhoto = async (req, res) => {
   for (let file of req.files) {
     const { path } = file;
     await cloudinary.uploader.upload(`${path}`, (result, e) => {
-      // console.log("errrrr", e);
-      // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>.",result);
       const { url, public_id } = result;
       const newPush = {};
-      // console.log('result', result);
       newPush.url = url;
       newPush.public_id = public_id;
       urls.push(newPush);
       req.urls = urls;
-      // console.log(url);
     });
     const updateImage = await Photo.updateOne(
       { _id: id },

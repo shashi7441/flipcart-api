@@ -6,6 +6,7 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    deliverTime: { type: Date },
     price: Number,
     highlight: {
       type: String,
@@ -55,8 +56,11 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-
-    isApproved: {
+    paymentMode: {
+      type: String,
+      default: 'COD',
+    },
+    isApprovedbyAdmin: {
       type: Boolean,
       default: false,
     },

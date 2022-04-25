@@ -18,7 +18,10 @@ exports.createAddress = async (req, res) => {
     } = req.body;
     const users = await User.findOne({ _id: req.id });
     if (!users) {
-      return res.send('enter register number');
+      return res.json({
+        statusCode: 400,
+        message: 'user not found',
+      });
     }
     // console.log("in", users);
     const address = await Address.findOne({ userId: req.id });
@@ -40,7 +43,7 @@ exports.createAddress = async (req, res) => {
       // req.addressId = result._id;
 
       return res.json({
-        success: true,
+        statusCode: 200,
         message: 'Address register successfully',
       });
     } else {
@@ -48,14 +51,14 @@ exports.createAddress = async (req, res) => {
       const createUser = await Address(req.body);
       const result = await createUser.save();
       //   console.log("in addressController", result);
-      res.json({
-        success: true,
+      return res.json({
+        statusCode: 200,
         message: 'Address register successfully',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode: 400,
       data: e.message,
     });
   }
@@ -69,19 +72,19 @@ exports.getAddress = async (req, res) => {
     );
     console.log(addressFind);
     if (addressFind) {
-      res.json({
-        success: true,
+      return res.json({
+        statusCode:200,
         data: addressFind,
       });
     } else {
-      res.json({
-        success: false,
+      return res.json({
+         statusCode:400,
         message: 'address not found',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       data: e.message,
     });
   }
@@ -92,8 +95,8 @@ exports.updateAddress = async (req, res) => {
     const _id = req.params.id;
     console.log(_id);
     if (Object.entries(req.body).length == 0) {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode:400,
         message: ' please fill the field',
       });
     }
@@ -101,13 +104,13 @@ exports.updateAddress = async (req, res) => {
       new: true,
     });
     console.log(updateData);
-    res.json({
-      success: true,
-      message: 'updated successfully',
+    return res.json({
+      statusCode:200,
+      message: 'address updated successfully',
     });
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       data: e.message,
     });
   }
@@ -121,13 +124,13 @@ exports.deleteData = async (req, res) => {
     // console.log(deleteData);
     const results = await Address.find().sort({ createdAt: -1 });
     const updateData = await Address.updateOne(results[0], { isDefault: true });
-    res.json({
-      success: true,
+    return res.json({
+      statusCode:400,
       message: 'deleted successfully',
     });
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -158,15 +161,15 @@ exports.showAllState = async (req, res) => {
         }
         if (!country) {
           return res.json({
-            success: false,
+            statusCode:400,
             message: 'wrong data',
           });
         }
         return res.send(response.data);
       });
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }

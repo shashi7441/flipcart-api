@@ -21,7 +21,7 @@ exports.addToCart = async (req, res) => {
       .populate('image', 'image.url');
     if (!productData) {
       return res.json({
-        success: false,
+        statusCode:400,
         message: 'product not found',
       });
     } else {
@@ -49,36 +49,37 @@ exports.addToCart = async (req, res) => {
             console.log('result', result);
             // const setData = await redis.set('my_value', result);
             // console.log('>>>>>>>>>>', setData);
-            res.json({
-              success: true,
-              totalPrice: totalPrice,
+           return   res.json({
+               statusCode:400,
               message: 'cart added successsfully',
-              data: result,
+              data: {
+                  totalPrice: totalPrice,
+                  data:result
+              },
             });
           } else {
-            console.log('3333333333333333333333333');
-            res.json({
-              success: false,
+          return  res.json({
+            statusCode:400,
               message: 'product out of stock',
             });
           }
         } else {
           return res.json({
-            success: false,
+            statusCode:400,
             message: 'already added into cart',
           });
         }
       } else {
-        res.json({
-          success: false,
+       return res.json({
+        statusCode:400,
           message: 'wrong entry',
         });
       }
     }
   } catch (e) {
     console.log('...................................', e);
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -90,13 +91,13 @@ exports.deleteCart = async (req, res) => {
     const _id = req.params.id;
     const cartData = await Cart.findOneAndDelete({ _id });
     // redis.del('my_value');
-    res.json({
-      success: true,
+    return res.json({
+      statusCode:200,
       message: 'cart deleted successfully',
     });
   } catch (e) {
-    res.json({
-      success: false,
+  return  res.json({
+    statusCode:400,
       message: e.message,
     });
   }
@@ -113,8 +114,8 @@ exports.incrementAndDecrement = async (req, res) => {
       .populate('image', 'image.url');
 
     if (!cartData) {
-      res.json({
-        success: false,
+    return  res.json({
+      statusCode:400,
         message: 'data not found',
       });
     } else {
@@ -129,15 +130,15 @@ exports.incrementAndDecrement = async (req, res) => {
           productsData.map((element) => {
             const totalPrice = element.price * cartData.quantity;
             return res.json({
-              success: true,
+              statusCode:200,
               message: 'updated successfully',
               totalPrice: totalPrice,
               data: findData,
             });
           });
         } else {
-          res.json({
-            success: false,
+        return  res.json({
+          statusCode:400,
             message: 'product out of stock',
           });
         }
@@ -152,28 +153,28 @@ exports.incrementAndDecrement = async (req, res) => {
           productsData.map((element) => {
             const totalPrice = element.price * cartData.quantity;
             return res.json({
-              success: true,
+              statusCode:200,
               message: 'updated successfully',
               totalPrice: totalPrice,
               data: findData,
             });
           });
         } else {
-          res.json({
-            success: false,
+       return   res.json({
+        statusCode:400,
             message: 'quantity value is not negative  ',
           });
         }
       } else {
-        res.json({
-          success: false,
+     return   res.json({
+      statusCode:400,
           message: 'wrong entry',
         });
       }
     }
   } catch (e) {
-    res.json({
-      success: false,
+  return  res.json({
+    statusCode:400,
       message: e.message,
     });
   }
@@ -190,22 +191,22 @@ exports.allCart = async (req, res, next) => {
   for (i of allCart) {
     price += i.quantity * i.ProductId.price;
   }
-  const getData = await redis.get('my_value');
-  if (getData == null) {
-    res.json({
-      success: true,
-      status: 200,
-      message: 'data found',
-      totalPrice: price,
-      data: allCart,
-    });
-  } else {
-    res.json({
+
+  // if (getData == null) {
+  // return  res.json({
+  //     success: true,
+  //     status: 200,
+  //     message: 'data found',
+  //     totalPrice: price,
+  //     data: allCart,
+  //   });
+  // } else {
+  return  res.json({
       success: true,
       status: 200,
       data: getData,
     });
-  }
+  // }
 };
 
 exports.deleteAllCart = async (req, res) => {
@@ -215,13 +216,13 @@ exports.deleteAllCart = async (req, res) => {
 
     console.log(deleteAll);
 
-    res.json({
-      success: true,
+   return res.json({
+    statusCode:200,
       message: 'deleted successfullly',
     });
   } catch (e) {
-    res.json({
-      success: false,
+   return res.json({
+    statusCode:200,
       message: e.message,
     });
   }

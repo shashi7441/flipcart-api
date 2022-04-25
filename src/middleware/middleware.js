@@ -14,16 +14,14 @@ exports.adminSignupValidation = (req, res, next) => {
         .length(6)
         .required()
         .trim(),
-      fullName: Joi.string().min(3).trim(),
-      aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string().trim(),
+      fullName: Joi.string().min(3).max(30).trim(),
     });
     return JoiSchema.validate(user);
   };
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -49,16 +47,14 @@ exports.sellerSignupValidation = (req, res, next) => {
         .trim()
         .regex(/^(\+91)[789]\d{9}$/)
         .message(' please input in this format +919856521463'),
-      fullName: Joi.string().min(3).required().trim(),
-      aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string().trim(),
+      fullName: Joi.string().min(3).required().trim().max(25),
     });
     return JoiSchema.validate(user);
   };
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -84,16 +80,14 @@ exports.userSignupValidation = (req, res, next) => {
         .trim()
         .regex(/^(\+91)[789]\d{9}$/)
         .message(' please input in this format +919874562358'),
-      fullName: Joi.string().min(3).required().trim(),
-      aboutUs: Joi.string().max(500).trim(),
-      role: Joi.string().trim(),
+      fullName: Joi.string().min(3).required().trim().max(30),
     });
     return JoiSchema.validate(user);
   };
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -123,7 +117,7 @@ exports.userLoginValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -153,7 +147,7 @@ exports.sellerLoginValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -174,7 +168,7 @@ exports.otpVerifyValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -199,7 +193,7 @@ exports.adressValidation = (req, res, next) => {
   if (response.error) {
     // console.log("err");
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -235,7 +229,7 @@ exports.sellerProfileValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -257,7 +251,7 @@ exports.productValidation = (req, res, next) => {
       title: Joi.string().required().min(5).trim(),
       rating: Joi.number(),
       isAvailable: Joi.boolean(),
-      quantity: Joi.number(),
+      quantity: Joi.number().required(),
       isApproved: Joi.boolean(),
     });
     return JoiSchema.validate(user);
@@ -266,7 +260,7 @@ exports.productValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -283,7 +277,7 @@ exports.categoryValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res.status(422).json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }
@@ -299,36 +293,11 @@ exports.brandValidation = (req, res, next) => {
 
   const response = validateUser(req.body);
   if (response.error) {
-    const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    let error = response.error.details[0].message;
+    let msg = error.replace(/[^a-zA-Z ]/g, '');
+    return res.status(422).json({ statusCode: 422, message: msg });
   } else {
     next();
-  }
-};
-exports.productUpdateValidation = (req, res, next) => {
-  try {
-    const validateUser = (user) => {
-      const JoiSchema = Joi.object({
-        createdBy: Joi.string().trim(),
-        price: Joi.number(),
-        highlight: Joi.string().trim(),
-        services: Joi.string().trim(),
-        availableOffer: Joi.string().trim(),
-        color: Joi.string().trim(),
-        categoryId: Joi.string().trim(),
-        brandId: Joi.string().trim(),
-        size: Joi.number(),
-        title: Joi.string().min(5),
-        rating: Joi.number(),
-        isAvailable: Joi.boolean(),
-        isApproved: Joi.boolean(),
-        quantity: Joi.number(),
-      });
-      JoiSchema.validate(user);
-      next();
-    };
-  } catch (e) {
-    console.log(e);
   }
 };
 
@@ -343,7 +312,9 @@ exports.addToCartValidation = (req, res, next) => {
   const response = validateUser(req.body);
   if (response.error) {
     const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    return res
+      .status(422)
+      .json({ status: 422, message: msg.replace(/[^a-zA-Z ]/g, '') });
   } else {
     next();
   }

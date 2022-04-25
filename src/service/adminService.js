@@ -39,7 +39,10 @@ sellerverifyMail = async (users, approvelMailTemplate) => {
       }
     });
   } catch (e) {
-    console.log(e);
+    return res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
@@ -70,7 +73,10 @@ exports.sendMail = async (req, resultToken) => {
       }
     });
   } catch (e) {
-    console.log(e);
+    return res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
@@ -86,7 +92,7 @@ exports.TokenVarify = (req, res, next) => {
     const authHeader = req.headers.authorization;
     const bearerToken = authHeader.split(' ');
     const token = bearerToken[1];
-    jwt.verify(token, process.env_SECRET_KEY,(error, payload) => {
+    jwt.verify(token, process.env.SECRET_KEY, (error, payload) => {
       if (payload) {
         req._id = payload._id;
 
@@ -102,44 +108,51 @@ exports.TokenVarify = (req, res, next) => {
 };
 
 exports.adminAprovel = async (req, res) => {
-  const id = req.body._id;
-  console.log('id', id);
-  const users = await User.findOne({ _id: id });
-  console.log('in admin aprovel user is', users);
-  if (!users) {
-    res.status(400).json({
-      success: false,
-      message: 'invalid user',
-    });
-  } else if (users.isAprroved == true && users.role === 'seller') {
-    res.send('seller already verified');
-  } else {
-    if (users.role === 'seller' && users.isApproved == false) {
-      const result = await User.updateOne(
-        { _id: users._id },
-        { isApproved: true },
-        { new: true }
-      );
-      // console.log(result);
-      res.json({
-        success: true,
-        message: 'approved by admin',
-        data: result,
-      });
-
-      // console.log('user.isaghhh54477654757874543', result);
-      const sellerFullName = users.fullName;
-      if (result.acknowledged === true) {
-        if (users.email) {
-          sellerverifyMail(users, approvelMailTemplate(sellerFullName));
-        }
-      }
-    } else {
-      res.json({
+  try {
+    const id = req.body._id;
+    const users = await User.findOne({ _id: id });
+    if (!users) {
+      return res.status(400).json({
         success: false,
-        message: 'Seller not found',
+        message: 'data not found',
       });
+    } else if (users.isAprroved == true && users.role === 'seller') {
+      res.json({
+        success: 400,
+        message: 'already approved',
+      });
+    } else {
+      if (users.role === 'seller' && users.isApproved == false) {
+        const result = await User.updateOne(
+          { _id: users._id },
+          { isApproved: true },
+          { new: true }
+        );
+        res.json({
+          success: 400,
+          message: `${users.role} ${users.fullName} approved by admin`,
+          data: result,
+        });
+
+        // console.log('user.isaghhh54477654757874543', result);
+        const sellerFullName = users.fullName;
+        if (result.acknowledged === true) {
+          if (users.email) {
+            sellerverifyMail(users, approvelMailTemplate(sellerFullName));
+          }
+        }
+      } else {
+        return res.json({
+          success: false,
+          message: 'Seller not found',
+        });
+      }
     }
+  } catch (e) {
+    return res.json({
+      success: false,
+      message: e.message,
+    });
   }
 };
 
@@ -166,31 +179,36 @@ exports.fieldsVisible = (req) => {
 // approvelMailTemplate(sellerFullName)
 
 exports.sellerTokenVarify = (req, res, next) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(400).json({
-      message: 'A token is required for authentication',
-      status: 400,
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(400).json({
+        message: 'A token is required for authentication',
+        status: 400,
+        success: false,
+      });
+    } else {
+      const authHeader = req.headers.authorization;
+      const bearerToken = authHeader.split(' ');
+      const token = bearerToken[1];
+      jwt.verify(token, process.env.SECRET_KEY, (error, payload) => {
+        if (payload) {
+          req.id = payload._id;
+          next();
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid token',
+            data: error.message,
+          });
+        }
+      });
+    }
+  } catch (e) {
+    return res.json({
       success: false,
-    });
-  } else {
-    const authHeader = req.headers.authorization;
-    const bearerToken = authHeader.split(' ');
-    const token = bearerToken[1];
-    jwt.verify(token, process.env.SECRET_KEY, (error, payload) => {
-      if (payload) {
-        req.id = payload._id;
-        next();
-      } else {
-        return res.status(400).json({
-          success: false,
-          message:"Invalid token",
-          data: error.message,
-        });
-      }
+      statusCode: 400,
+      message: e.message,
     });
   }
 };
-
-
-

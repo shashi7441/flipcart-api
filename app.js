@@ -22,7 +22,7 @@ const categoryRoutes = require('./src/routes/category');
 const { routeCheck } = require('./src/controller/adminController');
 const bodyParser = require('body-parser');
 const { mailSendEvery } = require('./src/utility/mailSendUser');
-
+const reviewRoutes = require('./src/routes/reviewRoutes')
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -84,6 +84,7 @@ app.use('/api', productRoutes);
 app.use('/api', brandRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', cartRoutes);
+app.use('/api/user', reviewRoutes)
 app.use('/api/*', routeCheck);
 
 function getFromEnv(key) {

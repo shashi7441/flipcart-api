@@ -9,19 +9,21 @@ const imageSchema = mongoose.Schema(
       createdAt: Date,
       updatedAt: Date,
     },
-    categoryId:{
-    type:String,
-    createdAt:Date,
-    updatedAt:Date
- },
-     brandId:{
-    type:String,
-    createdAt:Date,
-    updatedAt:Date
-    }
-
-
-
+    categoryId: {
+      type: String,
+      createdAt: Date,
+      updatedAt: Date,
+    },
+    brandId: {
+      type: String,
+      createdAt: Date,
+      updatedAt: Date,
+    },
+    reviewId: {
+      type: String,
+      createdAt: Date,
+      updatedAt: Date,
+    },
   },
   { timestamps: true }
 );

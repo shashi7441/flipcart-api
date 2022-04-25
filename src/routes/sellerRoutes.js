@@ -10,8 +10,8 @@ const {
 } = require('../middleware/middleware');
 const { updatePassword } = require('../service/sellerService');
 const { sellerTokenVarify } = require('../service/adminService');
-const { roleCheack } = require('../utility/role');
-const roles = process.env.SELLER_ROLE;
+const { multiRoleCheack } = require('../utility/role');
+const s1 = "seller";
 // ............ seller signup ................
 /**
  * @swagger
@@ -88,7 +88,7 @@ sellerRoutes.post('/login', sellerLoginValidation, login);
 sellerRoutes.put(
   '/forgot_password/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(s1),
   updatePassword
 );
 //  ................otp verify..................

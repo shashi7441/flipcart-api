@@ -32,12 +32,16 @@ exports.updatePassword = async (req, res) => {
       { new: true }
     );
     // notifier.notify("Password update successfully")
-    res.json({
+    return res.json({
       success: true,
+      statusCode: 200,
       message: 'password uppdated successfully',
     });
   } catch (error) {
-    console.log(error);
+    return res.json({
+      statusCode: 400,
+      message: error.message,
+    });
   }
 };
 
@@ -95,13 +99,13 @@ exports.userVerifiedEmail = async (req, res) => {
             { isVerified: true }
           );
           console.log('44746><><<?>', update);
-          res.json({
+          return res.json({
             message: 'Email verified successful',
             data: update,
             success: true,
           });
         } else {
-          res.json({
+          return res.json({
             success: false,
             message: 'already verified',
           });
@@ -110,10 +114,17 @@ exports.userVerifiedEmail = async (req, res) => {
         res.send('token are not match');
       }
     } else {
-      res.send('token not found');
+      return res.json({
+        statusCode: 400,
+        message: 'token are not found',
+      });
     }
   } catch (e) {
-    res.send(e);
+    return res.json({
+      success: false,
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
@@ -129,39 +140,45 @@ exports.verifyOtp = async (req, res) => {
         if (user.resetTime >= currentTime) {
           if (user.otp === otp) {
             await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
-            res.status(200).json({
+            return res.status(200).json({
               message: 'user verfified successful',
               status: 200,
               success: true,
             });
           } else {
-            res.status(401).json({
+            return res.status(401).json({
               message: 'invalid otp',
               status: 401,
               success: false,
             });
           }
         } else {
-          res.json({
+          return res.json({
             success: false,
+            statusCode: 400,
             message: 'your otp will be expire',
           });
         }
       } else {
-        res.json({
+        return res.json({
           success: false,
+          statusCode: 400,
           message: 'you are not user',
         });
       }
     } else {
-      res.status(404).json({
+      return res.status(404).json({
         message: "user not found ; check input -'+91 before contact'",
         status: 404,
         success: false,
       });
     }
   } catch (e) {
-    console.log(e);
+    return res.json({
+      success: false,
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
@@ -191,12 +208,17 @@ exports.otp = async (req, res, result) => {
       );
       return otpUser;
     } else {
-      res.json({
+      return res.json({
         message: "invalid input; try this format '+916598563525' for contact",
+        statusCode: 400,
       });
     }
-  } catch (err) {
-    console.log(err);
+  } catch (e) {
+    return res.json({
+      success: false,
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
@@ -220,6 +242,7 @@ exports.userTokenVarify = (req, res, next) => {
       } else {
         return res.status(400).json({
           success: false,
+          statusCode: 400,
           data: error,
         });
       }

@@ -8,12 +8,10 @@ const {
   updateCategory,
 } = require('../controller/categoryController');
 const { categoryValidation } = require('../middleware/middleware');
-const {roleCheack} = require('../utility/role')
+const {multiRoleCheack} = require('../utility/role')
 const {sellerTokenVarify} = require('../service/adminService')
-const{fileAndBodyAcceptForSingleImage} = require('../utility/multer')
-
-const roles = process.env.SELLER_ROLE
-
+const{fileAndBodyAccept} = require('../utility/multer')
+const s1 = "seller"
 //....................create category................
 /**
  * @swagger
@@ -40,7 +38,7 @@ const roles = process.env.SELLER_ROLE
  *              description : Bad request
  */
 
-categoryRoutes.post('/category', sellerTokenVarify, roleCheack(roles), fileAndBodyAcceptForSingleImage,categoryValidation, createCategory);
+categoryRoutes.post('/category', sellerTokenVarify, multiRoleCheack(s1), fileAndBodyAccept,categoryValidation, createCategory);
 // .......................show category...........................
 
 /**
@@ -67,7 +65,7 @@ categoryRoutes.post('/category', sellerTokenVarify, roleCheack(roles), fileAndBo
  *          404:
  *              description : Bad request
  */
-categoryRoutes.get('/category',sellerTokenVarify, roleCheack(roles), showCategory);
+categoryRoutes.get('/category',sellerTokenVarify, multiRoleCheack(s1), showCategory);
 // ............updated category successful............
 
 /**
@@ -94,7 +92,7 @@ categoryRoutes.get('/category',sellerTokenVarify, roleCheack(roles), showCategor
  *          404:
  *              description : Bad request
  */
-categoryRoutes.put('/category/:id', sellerTokenVarify, roleCheack(roles),fileAndBodyAcceptForSingleImage,updateCategory);
+categoryRoutes.put('/category/:id', sellerTokenVarify ,multiRoleCheack(s1),fileAndBodyAccept,updateCategory);
 
 // ............delete category...........
 
@@ -122,7 +120,7 @@ categoryRoutes.put('/category/:id', sellerTokenVarify, roleCheack(roles),fileAnd
  *          404:
  *              description : Bad request
  */
-categoryRoutes.delete('/category/:id', sellerTokenVarify, roleCheack(roles), deleteCategory);
+categoryRoutes.delete('/category/:id', sellerTokenVarify, multiRoleCheack(s1), deleteCategory);
 
 
 

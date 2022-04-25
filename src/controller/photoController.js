@@ -14,14 +14,11 @@ exports.createPhoto = async (req, res) => {
 };
 
 exports.createAndUpdatePhoto = async (req, res) => {
-  // console.log('req in controller 22222222 2222 ' , req.images);
-  // console.log('createPhoto', req.product_Id);
   const create = await Photo({
     image: req.images,
     productId: req.product_Id,
   });
   const result = await create.save();
-  console.log('res111111111111111111', result._id);
   req.photo_id = result._id;
 };
 
@@ -40,7 +37,7 @@ exports.deletePhoto = async (req, res) => {
 
     user.remove();
   } catch (e) {
-    res.json({
+   return res.json({
       success: false,
       message: e.message,
     });
@@ -81,7 +78,7 @@ exports.updatePhoto = async (req, res) => {
       );
     }
   } catch (e) {
-    res.json({
+  return  res.json({
       success: false,
       message: e.message,
     });
@@ -121,7 +118,7 @@ exports.updatePhotoAndBody = async (req, res) => {
       );
     }
   } catch (e) {
-    res.json({
+   return  res.json({
       success: false,
       message: e.message,
     });
@@ -130,7 +127,7 @@ exports.updatePhotoAndBody = async (req, res) => {
 
 exports.showImage = async (req, res) => {
   const result = await Photo.find();
-  res.json({
+ return res.json({
     success: true,
     data: result,
   });

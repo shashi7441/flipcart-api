@@ -9,6 +9,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilio = require('twilio');
 const { htmlTemplate } = require('../utility/mailTemplate');
+const e = require('express');
 //............ Generate crypto token...............
 exports.Crypto_token = () => {
   return crypto.randomBytes(64).toString('hex');
@@ -43,13 +44,19 @@ exports.sendMail = async (req, resultToken, htmlTemplate) => {
     };
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        console.log(error);
+        return res.json({
+          statusCode: 400,
+          message: error.message,
+        });
       } else {
         console.log('Email sent: ' + info.response);
       }
     });
   } catch (e) {
-    console.log(e);
+    return res.json({
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 // .............Verify Email..............
@@ -67,13 +74,13 @@ exports.verifiedEmail = async (req, res) => {
             { isVerified: true }
           );
           console.log('44746><><<?>', update);
-          res.json({
+          return res.json({
             message: 'Email verified successful !! wait for admin approvel',
             data: update,
-            success: true,
+            statusCode: 200,
           });
         } else {
-          res.json({
+          return res.json({
             success: false,
             message: 'already verified',
           });
@@ -85,7 +92,11 @@ exports.verifiedEmail = async (req, res) => {
       res.send('token not found');
     }
   } catch (e) {
-    res.status(400).json({ status: 400, message: 'Insert valid token' });
+    res.json({
+      success: false,
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
@@ -168,8 +179,11 @@ exports.otp = async (req, res, result) => {
         message: "invalid input; try this format '+916598563525' for contact",
       });
     }
-  } catch (err) {
-    console.log(err);
+  } catch (e) {
+    return res.json({
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
@@ -183,7 +197,10 @@ exports.sellerPresent = async (req) => {
       return user;
     }
   } catch (err) {
-    return err;
+    return res.json({
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
@@ -212,48 +229,6 @@ mailfunction = async (email, link) => {
   });
 };
 
-// exports.forgetPassword = async (req, res) => {
-//   try {
-//       const email = req.body.email
-//       const result = await User.findOne({ email })
-//       if (!result) {
-//           notifier.notify("User not register")
-//           return;
-//       }
-//       const secret = result.password
-//       const payload = {
-//           email: result.email,
-//           id: result.id
-//       }
-//       const token = jwt.sign(payload, secret, { expiresIn: "5min" })
-
-//       const link = `http://localhost:4600/api/auth/seller/forgot_password/${result._id}/${token}`;
-//       mailfunction(email, link)
-//       res.send("Password reset link has been sent to your email...")
-//       notifier.notify("Mail sent successfully")
-//   } catch (error) {
-//       console.log(error)
-//   }
-// },
-
-// exports.resetPass = async (req, res) => {
-//   const { _id, token } = req.params
-//   const result = await User.findOne({ _id: req.params.id })
-
-//   if (_id !== result._id) {
-//       // res.send("invalid id")
-//       notifier.notify("invalid id")
-//   }
-
-//   const secret = result.password;
-//   try {
-//       const payload = jwt.verify(token, secret)
-
-//   } catch (error) {
-//       res.send(error.message + "<h3> try again...</h3")
-//   }
-// },
-
 exports.updatePassword = async (req, res) => {
   const _id = req.params.id;
   console.log(_id);
@@ -272,11 +247,15 @@ exports.updatePassword = async (req, res) => {
       { new: true }
     );
     // notifier.notify("Password update successfully")
-    res.json({
+    return res.json({
       success: true,
+      statusCode: 200,
       message: 'password uppdated successfully',
     });
   } catch (error) {
-    console.log(error);
+    return res.json({
+      statusCode: 400,
+      message: error.message,
+    });
   }
 };

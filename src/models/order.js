@@ -7,14 +7,41 @@ const orderSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+    orders: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product',
+        },
+        quantity: {
+          type: Number,
+        },
+      },
+    ],
+    totalPriceWithShipingCharge: {
+      type: Number,
+      default: null,
     },
-    quantity: Number,
-    deliverTime: {
+    shippingcharge: {
+      type: Number,
+      default: null,
+    },
+    totalPrice: {
+      type: Number,
+      default: null,
+    },
+    fastDeliverTime: {
       type: Date,
-      default: new Date(+new Date() + 5 * 24 * 60 * 60 * 1000),
+    },
+    totalPriceWithFastDeliveryCharge: {
+      type: Number,
+    },
+    standardDeliveryTime: {
+      type: Date,
+      default: new Date(+new Date() + 3 * 24 * 60 * 60 * 1000),
+    },
+    fastDeliveryCharge: {
+      type: Number,
     },
     addressId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +49,12 @@ const orderSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['ordered', 'cancelled', 'shipped', 'delivered'],
+      enum: ['ordered', 'cancelled', 'dispatch', 'shipped', 'delivered'],
+    },
+    paymentMode: {
+      type: String,
+      enum: ['COD', 'netBanking', 'debitCard', 'creditCard'],
+      default: 'COD',
     },
   },
   { timestamps: true }

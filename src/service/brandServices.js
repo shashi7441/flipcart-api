@@ -8,17 +8,17 @@ cloudinary.config({
 
 exports.createBrandPhoto = async (req, res) => {
   try {
-    console.log('hiiiiiiiiiiiiiiiiiiiiii', req.singleImage);
     const create = await Photo({
-      image: req.singleImage,
+      image: req.images,
       brandId: req.brandId,
     });
 
     const result = await create.save();
     req.results = result;
   } catch (e) {
-    res.json({
+    return res.json({
       success: false,
+      statusCode:400,
       data: e.message,
     });
   }
@@ -40,8 +40,8 @@ exports.deleteBrandPhoto = async (req, res) => {
 
     user.remove();
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode:400,
       message: e.message,
     });
   }
@@ -50,16 +50,21 @@ exports.deleteBrandPhoto = async (req, res) => {
 exports.createAndUpdateBrandPhoto = async (req, res) => {
   try {
     const create = await Photo({
-      image: req.singleImage,
+      image:  req.images ,
       brandId: req.brand_Id,
     });
     const result = await create.save();
     // console.log('res111111111111111111', result._id);
     req.photo_id = result._id;
   } catch (e) {
-    console.log('................', e);
     res.json({
+      statusCode:400,
+      message:e.message
+    })
+    console.log('................', e);
+  return  res.json({
       success: false,
+      statusCode:400,
       data: e.message,
     });
   }
@@ -96,8 +101,8 @@ exports.updateBrandPhoto = async (req, res) => {
       );
     }
   } catch (e) {
-    res.json({
-      successL: false,
+   return res.json({
+    statusCode:400,
       message: e.message,
     });
   }

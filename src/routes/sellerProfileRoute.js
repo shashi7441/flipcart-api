@@ -8,8 +8,8 @@ const {
 } = require('../controller/sellerProfileController');
 const { sellerProfileValidation } = require('../middleware/middleware');
 const { sellerTokenVarify } = require('../service/adminService');
-const { roleCheack } = require('../utility/role');
-const roles = process.env.SELLER_ROLE;
+const { multiRoleCheack } = require('../utility/role');
+const s1 = "seller";
 
 /**
  * @swagger
@@ -45,12 +45,12 @@ const roles = process.env.SELLER_ROLE;
 sellerProfileRoutes.post(
   '/sellerProfile',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(s1),
   sellerProfileValidation,
   sellerProfileCreate
 );
 
-sellerProfileRoutes.get('/sellerProfile', sellerTokenVarify, roleCheack(roles))
+sellerProfileRoutes.get('/sellerProfile', sellerTokenVarify, multiRoleCheack(s1))
 
 
 /**
@@ -87,7 +87,7 @@ sellerProfileRoutes.get('/sellerProfile', sellerTokenVarify, roleCheack(roles))
 sellerProfileRoutes.put(
   '/sellerProfile/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(s1),
   sellerProfileUpdate
 );
 module.exports = sellerProfileRoutes;

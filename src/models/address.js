@@ -12,7 +12,6 @@ const addressSchema = new mongoose.Schema(
     city: String,
     streat: String,
     pincode: Number,
-    pincode: String,
     landMark: String,
     houseNo: String,
     addressType: String,

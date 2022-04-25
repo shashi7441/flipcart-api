@@ -4,7 +4,7 @@ const cartRoutes = express.Router();
 
 const { addToCartValidation } = require('../middleware/middleware');
 const { sellerTokenVarify } = require('../service/adminService');
-const { roleCheack } = require('../utility/role');
+const { multiRoleCheack } = require('../utility/role');
 const {
   addToCart,
   deleteCart,
@@ -13,7 +13,7 @@ const {
   deleteAllCart
 } = require('../controller/addTOCartController');
 
-const roles = process.env.USER_ROLE;
+const u1 = "user";
 
 /**
  * @swagger
@@ -42,7 +42,7 @@ const roles = process.env.USER_ROLE;
 cartRoutes.post(
   '/cart',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   addToCartValidation,
   addToCart
 );
@@ -68,7 +68,7 @@ cartRoutes.post(
 cartRoutes.delete(
   '/cart/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   deleteCart
 );
 /**
@@ -97,7 +97,7 @@ cartRoutes.delete(
 cartRoutes.put(
   '/cart/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   incrementAndDecrement
 );
 
@@ -114,9 +114,9 @@ cartRoutes.put(
  *              description : Bad request
  */
 
-cartRoutes.get('/cart', sellerTokenVarify, roleCheack(roles), allCart);
+cartRoutes.get('/cart', sellerTokenVarify, multiRoleCheack(u1), allCart);
 
-cartRoutes.delete('/cart', sellerTokenVarify, roleCheack(roles), deleteAllCart)
+cartRoutes.delete('/cart', sellerTokenVarify, multiRoleCheack(u1), deleteAllCart)
 
 
 module.exports = cartRoutes;

@@ -3,17 +3,16 @@ const Joi = require('joi');
 exports.orderValidation = (req, res, next) => {
   const validateOrder = (user) => {
     const JoiSchema = Joi.object({
-      deliverTime: Joi.date(),
-      productId: Joi.string().required().trim(),
-      quantity: Joi.number().required(),
-      addressId: Joi.string().trim()
+      orders: Joi.array().required(),
+      addressId: Joi.string().trim().required(),
+      paymentMode:Joi.string().trim().min(3)
     });
     return JoiSchema.validate(user);
   };
   const response = validateOrder(req.body);
   if (response.error) {
-    const msg = response.error.details[0].message;
-    return res.status(422).json({ status: 422, message: msg });
+    const message = response.error.details[0].message;
+    return res.status(422).json({ status: 422, message: message.replace(/[^a-zA-Z ]/g, "") });
   } else {
     next();
   }

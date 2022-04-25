@@ -11,14 +11,15 @@ const categorySchema = new mongoose.Schema(
       default: true,
     },
     image: {
-      type: String,
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Photo',
     },
     createdAt: {
       type: Date,
     },
     createdBy: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     deletedAt: {
       type: Date,

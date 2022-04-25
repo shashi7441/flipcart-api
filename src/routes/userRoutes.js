@@ -12,8 +12,8 @@ const {
   updatePassword,
 } = require('../service/userService');
 const { sellerTokenVarify } = require('../service/adminService');
-const { roleCheack } = require('../utility/role');
-const roles = process.env.USER_ROLE;
+const { multiRoleCheack } = require('../utility/role');
+const u1 = "user";
 
 /**
  * @swagger
@@ -119,7 +119,7 @@ userRoutes.post('/otpVerify', verifyOtp);
 userRoutes.put(
   '/forgot_password/:id',
   sellerTokenVarify,
-  roleCheack(roles),
+  multiRoleCheack(u1),
   updatePassword
 );
 

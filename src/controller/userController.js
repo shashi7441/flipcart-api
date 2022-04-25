@@ -18,7 +18,6 @@ exports.userSignup = async (req, res) => {
     if (!find) {
       req.body.role = 'user';
       req.body.isApproved = true;
-      // req.body. photo = url;
       const userToken = Crypto_token();
 
       // ........... create User ................
@@ -32,19 +31,19 @@ exports.userSignup = async (req, res) => {
       if (req.body.email) {
         sendMail(req, resultToken, userHtmlTemplate(link, fullName));
       }
-     return  res.json({
-        success: true,
+      return res.json({
+        statusCode: 200,
         message: 'user register successful',
       });
     } else {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode: 400,
         message: ' user already exist',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }
@@ -57,8 +56,8 @@ userEmailLog = async (req, res) => {
       email: req.body.email,
     });
     if (!result) {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode: 400,
         message: 'user not  found please signup',
       });
     }
@@ -84,27 +83,27 @@ userEmailLog = async (req, res) => {
             });
           }
         } else {
-          res.status(409).json({
+          return res.status(409).json({
             success: false,
             status: 409,
             message: 'Enter Correct Password',
           });
         }
       } else {
-        res.json({
-          success: false,
+        return res.json({
+          statusCode: 400,
           message: 'you are not  verified ',
         });
       }
     } else {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode: 400,
         message: 'you are not user',
       });
     }
   } catch (e) {
     return res.json({
-      success: false,
+      statusCode: 400,
       message: e.message,
     });
   }
@@ -118,8 +117,8 @@ userPhoneLog = async (req, res) => {
       role: 'user',
     });
     if (!result) {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode: 400,
         message: 'user not found please signup',
       });
     }
@@ -140,7 +139,7 @@ userPhoneLog = async (req, res) => {
               process.env.SECRET_KEY,
               { expiresIn: '24h' }
             );
-            res.status(200).json({
+            return res.status(200).json({
               success: true,
               status: 200,
               message: 'Login Successfully ',
@@ -148,27 +147,27 @@ userPhoneLog = async (req, res) => {
             });
           }
         } else {
-          res.status(409).json({
+          return res.status(409).json({
             success: false,
             status: 409,
             message: 'Enter Correct Password',
           });
         }
       } else {
-        res.status(400).json({
-          success: false,
+        return res.status(400).json({
+          statusCode: 400,
           message: ' please verify otp',
         });
       }
     } else {
-      res.json({
-        success: false,
+      return res.json({
+        statusCode: 400,
         message: 'you are not user',
       });
     }
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }

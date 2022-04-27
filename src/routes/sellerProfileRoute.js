@@ -6,10 +6,10 @@ const {
   sellerProfileCreate,
   sellerProfileUpdate,
 } = require('../controller/sellerProfileController');
-const { sellerProfileValidation } = require('../middleware/middleware');
+const { sellerProfileValidation } = require('../middleware/seller');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
-const s1 = "seller";
+const s1 = 'seller';
 
 /**
  * @swagger
@@ -50,8 +50,11 @@ sellerProfileRoutes.post(
   sellerProfileCreate
 );
 
-sellerProfileRoutes.get('/sellerProfile', sellerTokenVarify, multiRoleCheack(s1))
-
+sellerProfileRoutes.get(
+  '/sellerProfile',
+  sellerTokenVarify,
+  multiRoleCheack(s1)
+);
 
 /**
  * @swagger

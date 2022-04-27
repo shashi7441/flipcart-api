@@ -22,21 +22,21 @@ exports.roleCheack = (roles) => {
   };
 };
 
-exports.multiRoleCheack = (a1, s1, u1) => {
+exports.multiRoleCheack = (...role) => {
   return async (req, res, next) => {
-    const data = await User.findOne({ _id: req.id });
-    if (data) {
-      if (a1 == data.role || s1 == data.role || u1 == data.role) {
+    const roleData = role.includes(req.userData.role);
+    if (req.userData) {
+      if (roleData) {
         return next();
       } else {
         return res.json({
           statusCode: 401,
-          message: `${data.role} ${data.fullName} you are not allowed to access this api `,
+          message: ` ${req.userData.role} ${req.userData.fullName} you are not allowed to access this api `,
         });
       }
     } else {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'data not available',
       });
     }

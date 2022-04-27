@@ -2,7 +2,6 @@ const Order = require('../models/order');
 const User = require('../models/user');
 const Product = require('../models/product');
 const Address = require('../models/address');
-const { pdfGenerator } = require('../utility/pdfGenerator');
 const { sendMailToOrder } = require('../utility/mailSendOrder');
 const { acceptData } = require('../utility/pdfGenerator');
 exports.order = async (req, res) => {
@@ -12,7 +11,7 @@ exports.order = async (req, res) => {
       orders,
       deliverTime,
       expectedDeliverTime,
-      addressId,
+      addressId,  
       paymentMode,
     } = req.body;
 
@@ -221,10 +220,10 @@ exports.stateChange = async (req, res) => {
       });
     }
     const status = req.body.status;
-    if (!['shipped', 'delivered'].includes(status)) {
+    if (!['shipped', 'dispatch'].includes(status)) {
       return res.json({
         statusCode: 400,
-        message: 'status only have shipped and delivered',
+        message: 'status only have shipped and dispatch',
       });
     }
 

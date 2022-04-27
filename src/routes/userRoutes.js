@@ -5,7 +5,7 @@ const {
   userSignupValidation,
   userLoginValidation,
   otpVerifyValidation,
-} = require('../middleware/middleware');
+} = require('../middleware/userMiddleware');
 const {
   userVerifiedEmail,
   verifyOtp,
@@ -13,7 +13,7 @@ const {
 } = require('../service/userService');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
-const u1 = "user";
+const u1 = 'user';
 
 /**
  * @swagger
@@ -109,12 +109,7 @@ userRoutes.get('/verifytoken/:token', userVerifiedEmail);
  *              description : Bad request
  */
 
-userRoutes.post('/otpVerify', verifyOtp);
-
-
-
-
-
+userRoutes.post('/otpVerify', otpVerifyValidation, verifyOtp);
 
 userRoutes.put(
   '/forgot_password/:id',

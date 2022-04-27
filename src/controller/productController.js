@@ -11,6 +11,7 @@ const {
 const Photo = require('../models/image');
 const { uploadImagesForProduct } = require('../utility/multer');
 const Review = require('../models/review');
+const { page } = require('pdfkit');
 
 // const client = redis.createClient();
 // client.connect();
@@ -39,7 +40,7 @@ exports.createProduct = async (req, res) => {
     const productData = await Product.findOne({ title: title });
     if (productData) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'prooduct already exist ',
       });
     }
@@ -79,7 +80,7 @@ exports.createProduct = async (req, res) => {
             .populate('image', 'image.url')
             .populate('createdBy', 'fullName');
           return res.json({
-            statusCode:200,
+            statusCode: 200,
             message: 'product created successfully',
             data: produtfind,
           });
@@ -111,13 +112,13 @@ exports.createProduct = async (req, res) => {
             .populate('image', 'image.url')
             .populate('createdBy', 'fullName');
           return res.json({
-            statusCode:200,
+            statusCode: 200,
             message: 'product created successfully',
             data: produtfind,
           });
         } else {
           return res.json({
-            statusCode:400,
+            statusCode: 400,
             message: 'product already exist ',
           });
         }
@@ -125,7 +126,7 @@ exports.createProduct = async (req, res) => {
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }
@@ -141,7 +142,7 @@ exports.getAllProductsForPublic = async (req, res) => {
 
     if (!productFind) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'product not found',
       });
     }
@@ -155,7 +156,7 @@ exports.getAllProductsForPublic = async (req, res) => {
     });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
@@ -167,14 +168,14 @@ exports.getAllProduct = async (req, res) => {
     const userData = await User.findOne({ _id: req.id });
     if (!userData) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'user not found',
       });
     }
-    
+
     console.log(userData);
     if (userData.role == 'user') {
-      console.log("11111111111");
+      console.log('11111111111');
       const productFind = await Product.find({ isApprovedbyAdmin: true })
         .populate('brandId', 'brand')
         .populate('categoryId', 'category')
@@ -183,20 +184,19 @@ exports.getAllProduct = async (req, res) => {
 
       if (!productFind) {
         return res.json({
-          statusCode:400,
+          statusCode: 400,
           message: 'product not found',
         });
       }
 
-
       return res.status(200).json({
         message: 'product founded',
         totalProduct: productFind.length,
-        statusCode:200,
+        statusCode: 200,
         data: productFind,
       });
     } else if (userData.role == 'seller') {
-      console.log("22222222222222222222");
+      console.log('22222222222222222222');
       const search = req.query.search;
       const regex = new RegExp(search, 'i');
 
@@ -208,7 +208,7 @@ exports.getAllProduct = async (req, res) => {
 
       if (!find) {
         return res.json({
-          statusCode:400,
+          statusCode: 400,
           message: 'product not found',
         });
       }
@@ -240,7 +240,7 @@ exports.getAllProduct = async (req, res) => {
         });
       }
     } else {
-      console.log("33333333");
+      console.log('33333333');
       const find = await Product.find({ isApprovedbyAdmin: false })
         .populate('brandId', 'brand')
         .populate('categoryId', 'category')
@@ -249,21 +249,21 @@ exports.getAllProduct = async (req, res) => {
 
       if (!find) {
         return res.json({
-          statusCode:400,
+          statusCode: 400,
           message: 'product not found',
         });
       }
       return res.status(200).json({
         message: 'product founded',
         totalProduct: find.length,
-        statusCode:200,
+        statusCode: 200,
         data: find,
       });
     }
   } catch (e) {
     console.log(e);
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
@@ -276,13 +276,13 @@ exports.updateProducts = async (req, res) => {
 
     if (!data) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'product not found',
       });
     }
     if (Object.entries(req.body).length == 0) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: ' please fill the field',
       });
     }
@@ -346,14 +346,14 @@ exports.updateProducts = async (req, res) => {
         .populate('image', 'image.url')
         .populate('createdBy', 'fullName');
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         message: 'updated successfully',
         data: produtfind,
       });
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
@@ -373,20 +373,20 @@ exports.deleteProducts = async (req, res) => {
       productData.image = null;
       productData.save();
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         message: 'product deleted successfully',
         data: productData,
       });
     } else {
       // console.log('2222222222222222222222222222222');
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'product already deleted',
       });
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
@@ -402,13 +402,13 @@ exports.showOneProduct = async (req, res) => {
       .populate('createdBy', 'fullName');
 
     return res.json({
-      statusCode:200,
+      statusCode: 200,
       message: 'product found successfully',
       data: find,
     });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }
@@ -423,13 +423,13 @@ exports.isApproved = async (req, res) => {
       .populate('categoryId', 'category');
     if (!productData) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'product not found',
       });
     }
     if (productData.isApprovedbyAdmin == true) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'already approved you can sell product',
       });
     }
@@ -440,13 +440,13 @@ exports.isApproved = async (req, res) => {
     );
 
     return res.json({
-      statusCode:200,
+      statusCode: 200,
       message: 'ready to sell the product',
       data: updateProduct,
     });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }
@@ -455,6 +455,18 @@ exports.isApproved = async (req, res) => {
 exports.showOneProductForPublic = async (req, res) => {
   try {
     const _id = req.params.id;
+    let { page, size } = req.query;
+
+    if (!page) {
+      page = 1;
+    }
+
+    if (!size) {
+      size = 5;
+    }
+    const limit = parseInt(size);
+    const skip = parseInt((page - 1) * limit);
+
     const find = await Product.findOne({ _id: _id, isApprovedbyAdmin: true })
       .populate('brandId', 'brand')
       .populate('categoryId', 'category')
@@ -462,14 +474,15 @@ exports.showOneProductForPublic = async (req, res) => {
       .populate('createdBy', 'fullName');
     if (!find) {
       return res.json({
-        statusCode:400,
+        statusCode: 400,
         message: 'no product found',
       });
     }
-    const reviewData = await Review.find({ productId: find._id }).populate(
-      'userId',
-      'fullName'
-    );
+
+    const reviewData = await Review.find({ productId: find._id })
+      .populate('userId', 'fullName')
+      .limit(limit)
+      .skip(skip);
     let sum = 0;
     for (i of reviewData) {
       sum += i.rating;
@@ -482,7 +495,7 @@ exports.showOneProductForPublic = async (req, res) => {
     if (reviewData.length == 0) {
       console.log('1');
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         message: 'product found successfully',
         message: 'No review found',
         data: find,
@@ -500,7 +513,7 @@ exports.showOneProductForPublic = async (req, res) => {
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }

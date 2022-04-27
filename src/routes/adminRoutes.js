@@ -9,7 +9,7 @@ const {
   dashBoardejs,
 } = require('../controller/adminController');
 const { sellerTokenVarify, adminAprovel } = require('../service/adminService');
-const { adminSignupValidation } = require('../middleware/middleware');
+const { adminSignupValidation } = require('../middleware/admin');
 const {multiRoleCheack} = require('../utility/role');
 const a1 = "admin"
 //adminRoutes in signup

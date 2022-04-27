@@ -7,7 +7,7 @@ const {
   sellerSignupValidation,
   sellerLoginValidation,
   otpVerifyValidation,
-} = require('../middleware/middleware');
+} = require('../middleware/seller');
 const { updatePassword } = require('../service/sellerService');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');

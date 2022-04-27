@@ -7,11 +7,11 @@ const {
   deleteCategory,
   updateCategory,
 } = require('../controller/categoryController');
-const { categoryValidation } = require('../middleware/middleware');
-const {multiRoleCheack} = require('../utility/role')
-const {sellerTokenVarify} = require('../service/adminService')
-const{fileAndBodyAccept} = require('../utility/multer')
-const s1 = "seller"
+const { categoryValidation } = require('../middleware/category');
+const { multiRoleCheack } = require('../utility/role');
+const { sellerTokenVarify } = require('../service/adminService');
+const { fileAndBodyAccept } = require('../utility/multer');
+const s1 = 'seller';
 //....................create category................
 /**
  * @swagger
@@ -38,7 +38,14 @@ const s1 = "seller"
  *              description : Bad request
  */
 
-categoryRoutes.post('/category', sellerTokenVarify, multiRoleCheack(s1), fileAndBodyAccept,categoryValidation, createCategory);
+categoryRoutes.post(
+  '/category',
+  sellerTokenVarify,
+  multiRoleCheack(s1),
+  fileAndBodyAccept,
+  categoryValidation,
+  createCategory
+);
 // .......................show category...........................
 
 /**
@@ -65,7 +72,12 @@ categoryRoutes.post('/category', sellerTokenVarify, multiRoleCheack(s1), fileAnd
  *          404:
  *              description : Bad request
  */
-categoryRoutes.get('/category',sellerTokenVarify, multiRoleCheack(s1), showCategory);
+categoryRoutes.get(
+  '/category',
+  sellerTokenVarify,
+  multiRoleCheack(s1),
+  showCategory
+);
 // ............updated category successful............
 
 /**
@@ -92,7 +104,13 @@ categoryRoutes.get('/category',sellerTokenVarify, multiRoleCheack(s1), showCateg
  *          404:
  *              description : Bad request
  */
-categoryRoutes.put('/category/:id', sellerTokenVarify ,multiRoleCheack(s1),fileAndBodyAccept,updateCategory);
+categoryRoutes.put(
+  '/category/:id',
+  sellerTokenVarify,
+  multiRoleCheack(s1),
+  fileAndBodyAccept,
+  updateCategory
+);
 
 // ............delete category...........
 
@@ -120,9 +138,11 @@ categoryRoutes.put('/category/:id', sellerTokenVarify ,multiRoleCheack(s1),fileA
  *          404:
  *              description : Bad request
  */
-categoryRoutes.delete('/category/:id', sellerTokenVarify, multiRoleCheack(s1), deleteCategory);
-
-
-
+categoryRoutes.delete(
+  '/category/:id',
+  sellerTokenVarify,
+  multiRoleCheack(s1),
+  deleteCategory
+);
 
 module.exports = categoryRoutes;

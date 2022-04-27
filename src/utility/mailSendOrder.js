@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 
 const User = require('../models/user');
 const resultPath = path.resolve(__dirname, '../utility/');
-console.log('...........0', resultPath);
+
 exports.sendMailToOrder = async (req, res, result) => {
   try {
     const userData = await User.findOne({ _id: result.userId });

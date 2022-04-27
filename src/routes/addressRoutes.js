@@ -10,7 +10,7 @@ const {
   deleteData,
   showAllState,
 } = require('../controller/addressController');
-const { adressValidation } = require('../middleware/middleware');
+const { adressValidation } = require('../middleware/address');
 const { sellerTokenVarify } = require('../service/adminService');
 const u1 = "user";
 const s1 = "seller"

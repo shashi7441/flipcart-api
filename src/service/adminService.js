@@ -178,7 +178,7 @@ exports.fieldsVisible = (req) => {
 };
 // approvelMailTemplate(sellerFullName)
 
-exports.sellerTokenVarify = (req, res, next) => {
+exports.sellerTokenVarify = async (req, res, next) => {
   try {
     const token = req.headers.authorization;
     if (!token) {
@@ -191,9 +191,12 @@ exports.sellerTokenVarify = (req, res, next) => {
       const authHeader = req.headers.authorization;
       const bearerToken = authHeader.split(' ');
       const token = bearerToken[1];
-      jwt.verify(token, process.env.SECRET_KEY, (error, payload) => {
+      jwt.verify(token, process.env.SECRET_KEY, async (error, payload) => {
         if (payload) {
           req.id = payload._id;
+          const data = await User.findOne({ _id: req.id });
+          req.userData = data;
+
           next();
         } else {
           return res.status(400).json({

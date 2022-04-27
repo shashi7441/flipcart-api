@@ -2,7 +2,7 @@ const express = require('express');
 
 const cartRoutes = express.Router();
 
-const { addToCartValidation } = require('../middleware/middleware');
+const { addToCartValidation } = require('../middleware/addToCart');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
 const {
@@ -10,10 +10,10 @@ const {
   deleteCart,
   allCart,
   incrementAndDecrement,
-  deleteAllCart
+  deleteAllCart,
 } = require('../controller/addTOCartController');
 
-const u1 = "user";
+const u1 = 'user';
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ const u1 = "user";
  *              description : bad request
  */
 cartRoutes.post(
-  '/cart',
+  '/user/cart',
   sellerTokenVarify,
   multiRoleCheack(u1),
   addToCartValidation,
@@ -66,11 +66,12 @@ cartRoutes.post(
  */
 
 cartRoutes.delete(
-  '/cart/:id',
+  '/user/cart/:id',
   sellerTokenVarify,
   multiRoleCheack(u1),
   deleteCart
 );
+
 /**
  * /api/cart/:id:
  *  put:
@@ -95,7 +96,7 @@ cartRoutes.delete(
  */
 
 cartRoutes.put(
-  '/cart/:id',
+  '/user/cart/:id',
   sellerTokenVarify,
   multiRoleCheack(u1),
   incrementAndDecrement
@@ -114,9 +115,13 @@ cartRoutes.put(
  *              description : Bad request
  */
 
-cartRoutes.get('/cart', sellerTokenVarify, multiRoleCheack(u1), allCart);
+cartRoutes.get('/user/cart', sellerTokenVarify, multiRoleCheack(u1), allCart);
 
-cartRoutes.delete('/cart', sellerTokenVarify, multiRoleCheack(u1), deleteAllCart)
-
+cartRoutes.delete(
+  '/user/cart',
+  sellerTokenVarify,
+  multiRoleCheack(u1),
+  deleteAllCart
+);
 
 module.exports = cartRoutes;

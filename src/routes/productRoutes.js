@@ -11,17 +11,15 @@ const {
   getAllProduct,
   showOneProductForPublic,
 } = require('../controller/productController.js');
-const {
-  productValidation,
-} = require('../middleware/middleware');
+const { productValidation } = require('../middleware/product');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
-const {fileAndBodyAccept } = require('../utility/multer');
+const { fileAndBodyAccept } = require('../utility/multer');
 const { cheackBrandCategory } = require('../service/productService.js');
 
-const s1  = "seller";
+const s1 = 'seller';
 const a1 = 'admin';
-const u1 = "user"
+const u1 = 'user';
 //..................create Product...........
 
 /**
@@ -81,14 +79,12 @@ const u1 = "user"
 productRoutes.post(
   '/product',
   sellerTokenVarify,
-multiRoleCheack(s1),
+  multiRoleCheack(s1),
   fileAndBodyAccept,
   productValidation,
   cheackBrandCategory,
   createProduct
 );
-
-
 
 // .................In product get api..............................
 /**
@@ -115,8 +111,6 @@ multiRoleCheack(s1),
  *          404:
  *              description : Bad request
  */
-
-
 
 // ........................In product update api.....................
 /**
@@ -228,14 +222,16 @@ productRoutes.delete(
  *              description : Bad request
  */
 
+productRoutes.get('/product/:id', showOneProductForPublic);
+
 productRoutes.get(
-  '/product/:id',
-  showOneProductForPublic
+  '/product',
+  sellerTokenVarify,
+  multiRoleCheack(a1, s1, u1),
+  getAllProduct
 );
 
-productRoutes.get('/product', sellerTokenVarify, multiRoleCheack(a1,s1, u1 ),  getAllProduct)
-
-productRoutes.get('/product', getAllProductsForPublic)
+productRoutes.get('/product', getAllProductsForPublic);
 
 productRoutes.patch(
   '/product/:id',

@@ -8,7 +8,7 @@ const {
   updateBrand,
   deleteBrand,
 } = require('../controller/brandController');
-const { brandValidation } = require('../middleware/middleware');
+const { brandValidation } = require('../middleware/brand');
 const { sellerTokenVarify } = require('../service/adminService');
 const { fileAndBodyAccept } = require('../utility/multer');
 const { multiRoleCheack } = require('../utility/role');

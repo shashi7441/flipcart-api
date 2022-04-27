@@ -1,6 +1,7 @@
 const express = require('express');
 require('dotenv').config();
 const nodeCron = require('node-cron');
+require('./src/config/db');
 const rateLimit = require('express-rate-limit');
 const logger = require('./src/logger/loggger');
 const port = process.env.PORT;
@@ -15,14 +16,14 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const productRoutes = require('./src/routes/productRoutes');
 const { database } = require('./src/config/db');
-const orderRoutes = require('./src/routes/orderRoutes')
-// const sellerProfileRoutes = require('./src/routes/sellerProfileRoute');
+const orderRoutes = require('./src/routes/orderRoutes');
+const sellerProfileRoutes = require('./src/routes/sellerProfileRoute');
 const brandRoutes = require('./src/routes/brand');
 const categoryRoutes = require('./src/routes/category');
 const { routeCheck } = require('./src/controller/adminController');
 const bodyParser = require('body-parser');
 const { mailSendEvery } = require('./src/utility/mailSendUser');
-const reviewRoutes = require('./src/routes/reviewRoutes')
+const reviewRoutes = require('./src/routes/reviewRoutes');
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -66,25 +67,24 @@ app.use(limiter);
 
 const specs = swaggerJsDoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-const databaseConnection = require('./src/config/db');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname + '/src/views'));
-app.use('/api/user', orderRoutes)
+app.use('/api/user', orderRoutes);
 app.use(express.static(path.join(__dirname, './src/views')));
 app.use('/api/auth/admin', adminRoutes);
 app.use('/api/auth/seller', sellerRoutes);
 app.use('/api/auth/user', userRoutes);
-// app.use('/api/seller', sellerProfileRoutes);
+app.use('/api/seller', sellerProfileRoutes);
 app.use('/api', addressRoutes);
 app.use('/api', productRoutes);
 app.use('/api', brandRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', cartRoutes);
-app.use('/api/user', reviewRoutes)
+app.use('/api/user', reviewRoutes);
 app.use('/api/*', routeCheck);
 
 function getFromEnv(key) {
@@ -92,6 +92,7 @@ function getFromEnv(key) {
     throw new Error('server not found');
   }
 }
+
 nodeCron.schedule('  0 1 * * *', async (req, res) => {
   await mailSendEvery(req, res);
 });

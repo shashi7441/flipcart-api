@@ -1,85 +1,144 @@
 const Cart = require('../models/addTOCart');
 const Product = require('../models/product');
-// const Redis = require('ioredis');
-// const { get } = require('../routes/category');
-// const redis = new Redis();
-// new Redis({
-//   port: 6379, // Redis port
-//   host: '127.0.0.1', // Redis host
-//   username: 'default', // needs Redis >= 6
-//   password: 'my-top-secret',
-//   db: 0, // Defaults to 0
-// });
-
 exports.addToCart = async (req, res) => {
   try {
-    console.log('hiiiiiiiiiiiiiiiiiiiiiiiiiiii');
-    const productData = await Product.findOne({ _id: req.body.ProductId })
-      .populate('categoryId', 'category')
-      .populate('brandId', 'brand')
-      .populate('createdBy', 'fullName')
-      .populate('image', 'image.url');
-    if (!productData) {
-      return res.json({
-        statusCode:400,
-        message: 'product not found',
-      });
-    } else {
-      if (productData.isActive == true) {
-        console.log('1111111111111111111111111');
-        const cartData = await Cart.findOne({
-          ProductId: req.body.ProductId,
-          createdBy: req.id,
+    const {
+      productId,
+      quantity,
+      products,
+      totalPrice,
+      shippingCharge,
+      createdBy,
+    } = req.body;
+    const productArray = [];
+    let totalAmount = 0;
+
+    const cartData = await Cart.findOne({ createdBy: req.userData._id });
+    for (let element of products) {
+      const productData = await Product.findOne({ _id: element.productId })
+        .populate('categoryId', 'category')
+        .populate('brandId', 'brand')
+        .populate('createdBy', 'fullName'); //...........
+      if (!productData) {
+        return res.json({
+          statusCode: 400,
+          message: 'product not found',
         });
-        if (!cartData) {
-          console.log('2222222222222222222222222');
-          const { quantity, ProductId } = req.body;
-          console.log(quantity);
-          if (quantity <= productData.quantity) {
-            const create = await Cart({
-              quantity: quantity,
-              ProductId: ProductId,
-              createdBy: req.id,
-            });
-            const result = await create.save();
-            const totalPrice = productData.price * result.quantity;
-            // console.log(">>>>>>>>>>>",result, totalPrice );
-            // const newObj = { ...result };
-            // console.log('newObj', newObj);
-            console.log('result', result);
-            // const setData = await redis.set('my_value', result);
-            // console.log('>>>>>>>>>>', setData);
-           return   res.json({
-               statusCode:400,
-              message: 'cart added successsfully',
-              data: {
-                  totalPrice: totalPrice,
-                  data:result
-              },
-            });
-          } else {
-          return  res.json({
-            statusCode:400,
-              message: 'product out of stock',
+      }
+      if (cartData) {
+        const iteratorData = cartData.products;
+        for (i of iteratorData) {
+          if (i.productId == element.productId) {
+            return res.status(400).json({
+              statusCode: 400,
+              message: 'product already exist', //message: already in cart
             });
           }
-        } else {
-          return res.json({
-            statusCode:400,
-            message: 'already added into cart',
-          });
         }
+      }
+
+      // if (productData.isApprovedbyAdmin == false) {
+      //   return res.json({
+      //     statusCode: 400,
+      //     message: `${productData.title} is not approved by admin so not sell`,
+      //   });
+      // }
+      // if (productData.isAvailable == false) {
+      //   return res.json({
+      //     statusCode: 400,
+      //     message: `${productData.title} is not available`,
+      //   });
+      // }
+      if (productData.quantity < element.quantity) {
+        return res.json({
+          statusCode: 400,
+          message: `${productData.title} is out of stock`,
+        });
+      }
+
+      productArray.push({
+        productId: productData._id,
+        quantity: element.quantity,
+      });
+
+      const productPrice = productData.price * element.quantity;
+      totalAmount += productPrice;
+    }
+    const totalAmountWithShippingCharge = totalAmount + 40;
+
+    if (cartData) {
+      const previousAmount = cartData.totalPrice + totalAmount;
+      const updateCart = await Cart.updateOne(
+        { createdBy: req.userData._id },
+        { $push: { products: productArray }, totalPrice: previousAmount },
+        { new: true }
+      );
+      for (let i of productArray) {
+        const productData = await Product.findOne({ _id: i.productId });
+        if (productData.quantity > 0) {
+          productData.quantity -= i.quantity;
+          productData.save();
+        }
+      }
+      return res.json({
+        statusCode: 200,
+        message: 'added into cart successfully',
+        data: cartData,
+      });
+    }
+
+    if (!cartData) {
+      if (totalAmount >= 500) {
+        const createCart = await Cart({
+          products: productArray,
+          createdBy: req.userData._id,
+          totalPrice: totalAmountWithShippingCharge,
+        });
+        const result = await createCart.save();
+        for (let i of productArray) {
+          const productData = await Product.findOne({ _id: i.productId });
+          if (productData.quantity > 0) {
+            productData.quantity -= i.quantity;
+            productData.save();
+          }
+        }
+        return res.json({
+          success: true,
+          statusCode: 201,
+          message: 'added in cart successfully',
+          data: {
+            shippingCharge: 40,
+            data: result,
+          },
+        });
       } else {
-       return res.json({
-        statusCode:400,
-          message: 'wrong entry',
+        const createCart = await Cart({
+          products: productArray,
+          createdBy: req.userData._id,
+          totalPrice: totalAmount,
+        });
+        const result = await createCart.save();
+        for (i of productArray) {
+          const productData = await Product.findOne({ _id: i.productId });
+          if (productData.quantity > 0) {
+            productData.quantity -= i.quantity;
+            productData.save();
+          }
+        }
+
+        return res.json({
+          success: true,
+          statusCode: 201,
+          message: 'added in cart successfully',
+          data: result,
         });
       }
     }
   } catch (e) {
-    console.log('...................................', e);
+    console.log(e);
     return res.json({
-      statusCode:400,
+      success: false,
+      statusCode: 400,
       message: e.message,
     });
   }
@@ -87,126 +146,138 @@ exports.addToCart = async (req, res) => {
 
 exports.deleteCart = async (req, res) => {
   try {
-    console.log('hiiiiiiiiiiiiiiiiiiii');
     const _id = req.params.id;
     const cartData = await Cart.findOneAndDelete({ _id });
-    // redis.del('my_value');
     return res.json({
-      statusCode:200,
+      statusCode: 200,
       message: 'cart deleted successfully',
     });
   } catch (e) {
-  return  res.json({
-    statusCode:400,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }
 };
+
 exports.incrementAndDecrement = async (req, res) => {
   try {
     const _id = req.params.id;
     const value = req.query.value;
-    const cartData = await Cart.findOne({ _id, createdBy: req.id });
-    const productData = await Product.findOne({ _id: cartData.ProductId })
+    const cartData = await Cart.findOne({ createdBy: req.id });
+    const found = cartData.products.find((element) => element.id === _id);
+
+    const oldQuantity = found.quantity;
+    console.log(oldQuantity);
+    const productData = await Product.findOne({ _id: found.productId })
       .populate('categoryId', 'category')
       .populate('brandId', 'brand')
       .populate('createdBy', 'fullName')
       .populate('image', 'image.url');
-
     if (!cartData) {
-    return  res.json({
-      statusCode:400,
+      return res.json({
+        statusCode: 400,
         message: 'data not found',
       });
-    } else {
-      if (value == 'increment') {
-        const productsData = await Product.find({ _id: cartData.ProductId });
-        if (cartData.quantity < productData.quantity) {
-          cartData.quantity += 1;
+    }
+    if (!value.toString() == 'increment' || value.toString() == 'decrement') {
+      return res.json({
+        statusCode: 400,
+        message: 'wrong entry',
+      });
+    }
+
+    if (value == 'increment') {
+      if (cartData) {
+        if (found.quantity < productData.quantity) {
+          found.quantity += 1;
           await cartData.save();
-          // const setData = await redis.set('my_value', cartData);
-          // console.log('setDAta in put', setData);
-          const findData = await Cart.findOne({ _id, createdBy: req.id });
-          productsData.map((element) => {
-            const totalPrice = element.price * cartData.quantity;
+          productData.quantity -= 1;
+          await productData.save();
+          const actualQuantity = found.quantity - oldQuantity;
+
+          const price = productData.price * actualQuantity;
+          const cartPrice = cartData.totalPrice + price;
+          const shippingCharge = 40;
+          if (cartPrice >= 500) {
+            const updateCart = await Cart.updateOne(
+              { createdBy: req.id },
+              { totalPrice: priceWithShippingCharge },
+              { new: true }
+            );
+            const result = await Cart.findOne({ createdBy: req.id });
             return res.json({
-              statusCode:200,
+              statusCode: 200,
               message: 'updated successfully',
-              totalPrice: totalPrice,
-              data: findData,
+              data: {
+                shippingCharge: shippingCharge,
+                totalAmountWithShipppingCharge: cartPrice,
+                data: result,
+              },
             });
-          });
-        } else {
-        return  res.json({
-          statusCode:400,
-            message: 'product out of stock',
-          });
-        }
-      } else if (value == 'decrement') {
-        if (cartData.quantity > 0) {
-          cartData.quantity -= 1;
-          await cartData.save();
-          const setData = await redis.set('my_value', cartData);
-          // console.log('in decrement', setData);
-          const findData = await Cart.findOne({ _id, createdBy: req.id });
-          const productsData = await Product.find({ _id: cartData.ProductId });
-          productsData.map((element) => {
-            const totalPrice = element.price * cartData.quantity;
+          } else {
+            const updateCart = await Cart.updateOne(
+              { createdBy: req.id },
+              { totalPrice: cartPrice },
+              { new: true }
+            );
+            const result = await Cart.findOne({ createdBy: req.id });
             return res.json({
-              statusCode:200,
+              statusCode: 200,
               message: 'updated successfully',
-              totalPrice: totalPrice,
-              data: findData,
+              data: result,
             });
-          });
-        } else {
-       return   res.json({
-        statusCode:400,
-            message: 'quantity value is not negative  ',
-          });
+          }
         }
-      } else {
-     return   res.json({
-      statusCode:400,
-          message: 'wrong entry',
-        });
       }
     }
+    //   if (cartData.quantity > 0) {
+    //     cartData.quantity -= 1;
+    //     await cartData.save();
+    //     const setData = await redis.set('my_value', cartData);
+    //     // console.log('in decrement', setData);
+    //     const findData = await Cart.findOne({ _id, createdBy: req.id });
+    //     const productsData = await Product.find({ _id: cartData.ProductId });
+    //     productsData.map((element) => {
+    //       const totalPrice = element.price * cartData.quantity;
+    //       return res.json({
+    //         statusCode: 200,
+    //         message: 'updated successfully',
+    //         totalPrice: totalPrice,
+    //         data: findData,
+    //       });
+    //     });
+
+    //     return res.json({
+    //       statusCode: 400,
+    //       message: 'quantity value is not negative  ',
+    //     });
+    //   }
   } catch (e) {
-  return  res.json({
-    statusCode:400,
+    console.log(e);
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }
 };
 
 exports.allCart = async (req, res, next) => {
-  const allCart = await Cart.find({ createdBy: req.id }).populate(
-    'ProductId',
-    'price'
-  );
+  try {
+    const allCart = await Cart.find({ createdBy: req.id });
 
-  let price = 0;
-
-  for (i of allCart) {
-    price += i.quantity * i.ProductId.price;
-  }
-
-  // if (getData == null) {
-  // return  res.json({
-  //     success: true,
-  //     status: 200,
-  //     message: 'data found',
-  //     totalPrice: price,
-  //     data: allCart,
-  //   });
-  // } else {
-  return  res.json({
+    return res.json({
       success: true,
       status: 200,
-      data: getData,
+      data: allCart,
     });
-  // }
+  } catch (e) {
+    return res.json({
+      success: false,
+      status: 200,
+      message: e.message,
+    });
+  }
 };
 
 exports.deleteAllCart = async (req, res) => {
@@ -216,13 +287,13 @@ exports.deleteAllCart = async (req, res) => {
 
     console.log(deleteAll);
 
-   return res.json({
-    statusCode:200,
+    return res.json({
+      statusCode: 200,
       message: 'deleted successfullly',
     });
   } catch (e) {
-   return res.json({
-    statusCode:200,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }

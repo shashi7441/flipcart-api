@@ -23,6 +23,7 @@ const cartSchema = mongoose.Schema(
     },
     priceWithShippingCharge: {
       type: Number,
+      default: null,
     },
   },
   { timestamps: true }

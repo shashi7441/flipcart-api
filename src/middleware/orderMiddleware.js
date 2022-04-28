@@ -4,9 +4,16 @@ exports.orderValidation = (req, res, next) => {
   const validateOrder = (user) => {
     const JoiSchema = Joi.object({
       orders: Joi.array().required(),
-      addressId: Joi.string().trim().required(),
+      addressId: Joi.string()
+        .hex()
+        .length(24)
+        .message('please fill id in proper format'),
       paymentMode: Joi.string().trim().min(3),
-      productId: Joi.string().trim(),
+      productId: Joi.string()
+        .hex()
+        .length(24)
+        .trim()
+        .message('please fill id in proper format'),
       quantity: Joi.number(),
     });
     return JoiSchema.validate(user);

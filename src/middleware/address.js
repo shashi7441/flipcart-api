@@ -4,7 +4,10 @@ exports.adressValidation = (req, res, next) => {
   const addressValidate = (user) => {
     // console.log("addressValidate");
     const JoiSchema = Joi.object({
-      userId: Joi.string().trim(),
+      userId: Joi.string()
+        .hex()
+        .length(24)
+        .message('please fill id in proper format'),
       country: Joi.string().required().trim().min(3),
       state: Joi.string().required().trim().min(5),
       city: Joi.string().required().trim().min(3),

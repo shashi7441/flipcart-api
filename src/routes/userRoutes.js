@@ -1,11 +1,11 @@
 const express = require('express');
 const userRoutes = express.Router();
-const { userSignup, userLogin } = require('../controller/userController');
+const { userSignup, userLogin } = require('../controller');
 const {
   userSignupValidation,
   userLoginValidation,
   otpVerifyValidation,
-} = require('../middleware/userMiddleware');
+} = require('../middleware');
 const {
   userVerifiedEmail,
   verifyOtp,
@@ -118,4 +118,4 @@ userRoutes.put(
   updatePassword
 );
 
-module.exports = { userRoutes };
+module.exports = userRoutes;

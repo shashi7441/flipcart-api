@@ -6,11 +6,11 @@ const {
   deleteReview,
   getAllReview,
   getReviewForUser,
-} = require('../controller/reviewController');
+} = require('../controller');
 const { multiRoleCheack } = require('../utility/role');
 const { fileAndBodyAccept } = require('../utility/multer');
 const { sellerTokenVarify } = require('../service/adminService');
-const { reviewValidation } = require('../middleware/reviewMiddleware');
+const { reviewValidation } = require('../middleware');
 const u1 = 'user';
 reviewRoutes.post(
   '/review',
@@ -30,8 +30,8 @@ reviewRoutes.get(
 reviewRoutes.delete(
   '/review/:id',
   sellerTokenVarify,
-  multiRoleCheack(u1)
-,  deleteReview
+  multiRoleCheack(u1),
+  deleteReview
 );
 
 module.exports = reviewRoutes;

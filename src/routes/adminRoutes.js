@@ -7,11 +7,11 @@ const {
   sellerReject,
   getAllSeller,
   dashBoardejs,
-} = require('../controller/adminController');
+} = require('../controller');
 const { sellerTokenVarify, adminAprovel } = require('../service/adminService');
-const { adminSignupValidation } = require('../middleware/admin');
-const {multiRoleCheack} = require('../utility/role');
-const a1 = "admin"
+const { adminSignupValidation } = require('../middleware');
+const { multiRoleCheack } = require('../utility/role');
+const a1 = 'admin';
 //adminRoutes in signup
 /**
  * @swagger
@@ -69,7 +69,12 @@ adminRoutes.get('/dashBoard', dashBoardejs);
  *              description : seller doesnt found
  */
 
-adminRoutes.post('/aprovel', sellerTokenVarify, multiRoleCheack(a1), adminAprovel);
+adminRoutes.post(
+  '/aprovel',
+  sellerTokenVarify,
+  multiRoleCheack(a1),
+  adminAprovel
+);
 // ...............admin get api in swagger.....................
 /**
  * @swagger
@@ -84,8 +89,18 @@ adminRoutes.post('/aprovel', sellerTokenVarify, multiRoleCheack(a1), adminAprove
  *         required: true
  *         description: Numeric ID of the user to get
  */
-adminRoutes.get('/allSeller', sellerTokenVarify, multiRoleCheack(a1), getAllSeller);
+adminRoutes.get(
+  '/allSeller',
+  sellerTokenVarify,
+  multiRoleCheack(a1),
+  getAllSeller
+);
 
-adminRoutes.put('/reject/:id', sellerTokenVarify, multiRoleCheack(a1), sellerReject);
+adminRoutes.put(
+  '/reject/:id',
+  sellerTokenVarify,
+  multiRoleCheack(a1),
+  sellerReject
+);
 
 module.exports = adminRoutes;

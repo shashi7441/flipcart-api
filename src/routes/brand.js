@@ -7,12 +7,12 @@ const {
   showBrand,
   updateBrand,
   deleteBrand,
-} = require('../controller/brandController');
-const { brandValidation } = require('../middleware/brand');
+} = require('../controller');
+const { brandValidation } = require('../middleware');
 const { sellerTokenVarify } = require('../service/adminService');
 const { fileAndBodyAccept } = require('../utility/multer');
 const { multiRoleCheack } = require('../utility/role');
-const  s1 = "seller"
+const s1 = 'seller';
 
 //........................create Brand..................
 /**
@@ -62,7 +62,7 @@ brandRoutes.post(
   '/brand',
   sellerTokenVarify,
   multiRoleCheack(s1),
- fileAndBodyAccept,
+  fileAndBodyAccept,
   brandValidation,
   createBrand
 );
@@ -138,7 +138,7 @@ brandRoutes.put(
   '/brand/:id',
   sellerTokenVarify,
   multiRoleCheack(s1),
- fileAndBodyAccept,
+  fileAndBodyAccept,
   updateBrand
 );
 

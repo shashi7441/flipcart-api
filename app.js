@@ -7,23 +7,25 @@ const logger = require('./src/logger/loggger');
 const port = process.env.PORT;
 const path = require('path');
 const app = express();
-const cartRoutes = require('./src/routes/addToCart');
-const adminRoutes = require('./src/routes/adminRoutes');
-const { sellerRoutes } = require('./src/routes/sellerRoutes');
-const { userRoutes } = require('./src/routes/userRoutes');
-const addressRoutes = require('./src/routes/addressRoutes');
+const {
+  addressRoutes,
+  brandRoutes,
+  cartRoutes,
+  categoryRoutes,
+  reviewRoutes,
+  userRoutes,
+  orderRoutes,
+  productRoutes,
+  sellerProfileRoutes,
+  sellerRoutes,
+  adminRoutes,
+} = require('./src/routes/');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
-const productRoutes = require('./src/routes/productRoutes');
 const { database } = require('./src/config/db');
-const orderRoutes = require('./src/routes/orderRoutes');
-const sellerProfileRoutes = require('./src/routes/sellerProfileRoute');
-const brandRoutes = require('./src/routes/brand');
-const categoryRoutes = require('./src/routes/category');
-const { routeCheck } = require('./src/controller/adminController');
+const { routeCheck } = require('./src/controller');
 const bodyParser = require('body-parser');
 const { mailSendEvery } = require('./src/utility/mailSendUser');
-const reviewRoutes = require('./src/routes/reviewRoutes');
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -64,6 +66,10 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+// app.use(()=>{
+
+// })
 
 const specs = swaggerJsDoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

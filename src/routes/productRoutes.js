@@ -10,8 +10,8 @@ const {
   isApproved,
   getAllProduct,
   showOneProductForPublic,
-} = require('../controller/productController.js');
-const { productValidation } = require('../middleware/product');
+} = require('../controller');
+const { productValidation } = require('../middleware');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
 const { fileAndBodyAccept } = require('../utility/multer');

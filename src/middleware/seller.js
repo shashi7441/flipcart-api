@@ -93,7 +93,10 @@ exports.otpVerifyValidation = (req, res, next) => {
 exports.sellerProfileValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      sellerId: Joi.string().trim(),
+      sellerId: Joi.string()
+        .hex()
+        .length(24)
+        .message('please fill id in proper format'),
       adharCardNumber: Joi.string()
         .required()
         .trim()

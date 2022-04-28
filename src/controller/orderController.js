@@ -11,9 +11,10 @@ exports.order = async (req, res) => {
       orders,
       deliverTime,
       expectedDeliverTime,
-      addressId,  
+      addressId,
       paymentMode,
     } = req.body;
+    const orderData = await Order.findOne({ userId: req.id });
 
     const addressData = await Address.findOne({
       _id: addressId,
@@ -72,7 +73,6 @@ exports.order = async (req, res) => {
           });
         }
       }
-
       const productPrice = productData.price * i.quantity;
       totalAmount += productPrice;
       productData.quantity;
@@ -81,34 +81,36 @@ exports.order = async (req, res) => {
         quantity: i.quantity,
       });
     }
-    if (totalAmount <= 500) {
-      const totalPriceWithCharge = totalAmount + 40;
-      const createOrder = await Order({
-        userId: req.id,
-        orders: arr,
-        status: 'ordered',
-        addressId,
-        shippingcharge: 40,
-        totalPrice: totalAmount,
-        paymentMode: paymentMode,
-        totalPriceWithShipingCharge: totalPriceWithCharge,
-      });
-      const result = await createOrder.save();
+    if (totalAmount > 500) {
+      if (!orderData) {
+        const totalPriceWithCharge = totalAmount + 40;
+        const createOrder = await Order({
+          userId: req.id,
+          orders: arr,
+          status: 'ordered',
+          addressId,
+          shippingcharge: 40,
+          totalPrice: totalAmount,
+          paymentMode: paymentMode,
+          totalPriceWithShipingCharge: totalPriceWithCharge,
+        });
+        const result = await createOrder.save();
 
-      for (i of arr) {
-        const productData = await Product.findOne({ _id: i.productId });
-        if (productData.quantity > 0) {
-          productData.quantity -= i.quantity;
-          productData.save();
+        for (i of arr) {
+          const productData = await Product.findOne({ _id: i.productId });
+          if (productData.quantity > 0) {
+            productData.quantity -= i.quantity;
+            productData.save();
+          }
         }
+        acceptData(result);
+        await sendMailToOrder(req, res, result);
+        return res.json({
+          statusCode: 200,
+          message: 'order placed successfull',
+          data: result,
+        });
       }
-      acceptData(result);
-      await sendMailToOrder(req, res, result);
-      return res.json({
-        statusCode: 200,
-        message: 'order placed successfull',
-        data: result,
-      });
     } else {
       const createOrder = await Order({
         userId: req.id,
@@ -134,6 +136,33 @@ exports.order = async (req, res) => {
         data: result,
       });
     }
+    // ......................if order found...................?
+
+    // if (orderData) {
+    //   if (orderData.totalAmount >= 500) {
+    //     const actualAmount =
+    //       orderData.totalPriceWithShipingCharge + totalAmount;
+    //     const updateCart = await Cart.updateOne(
+    //       { createdBy: req.id },
+    //       { $push: { orders: arr }, totalPrice: actualAmount },
+    //       { new: true }
+    //     );
+    //     for (let i of productArray) {
+    //       const productData = await Product.findOne({ _id: i.productId });
+    //       if (productData.quantity > 0) {
+    //         productData.quantity -= i.quantity;
+    //         productData.save();
+    //       }
+    //     }
+    //     const result = await Order.findOne({ createdBy: req.id });
+
+    //     return res.json({
+    //       statusCode: 200,
+    //       message: 'order  successfully',
+    //       data: result,
+    //     });
+    //   }
+    // }
   } catch (e) {
     console.log(e);
     return res.json({
@@ -159,6 +188,8 @@ exports.cancelOrder = async (req, res) => {
         { status: 'cancelled' },
         { new: true }
       );
+      
+
       return res.json({
         statusCode: 200,
         message: 'order cancelled successfully',

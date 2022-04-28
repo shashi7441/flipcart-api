@@ -1,17 +1,17 @@
 const express = require('express');
 require('dotenv').config();
 const sellerRoutes = express.Router();
-const { signup, login } = require('../controller/sellerController');
+const { signup, login } = require('../controller');
 const { verifiedEmail, verifyOtp } = require('../service/sellerService');
 const {
   sellerSignupValidation,
   sellerLoginValidation,
   otpVerifyValidation,
-} = require('../middleware/seller');
+} = require('../middleware');
 const { updatePassword } = require('../service/sellerService');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
-const s1 = "seller";
+const s1 = 'seller';
 // ............ seller signup ................
 /**
  * @swagger
@@ -118,4 +118,4 @@ sellerRoutes.put(
  */
 sellerRoutes.post('/verifyotp', otpVerifyValidation, verifyOtp);
 
-module.exports = { sellerRoutes };
+module.exports = sellerRoutes;

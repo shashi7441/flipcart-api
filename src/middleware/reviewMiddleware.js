@@ -5,7 +5,10 @@ exports.reviewValidation = (req, res, next) => {
     const JoiSchema = Joi.object({
       title: Joi.string().trim().min(4).max(30).required(),
       comment: Joi.string().trim().min(4).max(100).required(),
-      productId: Joi.string().required().trim(),
+      productId: Joi.string()
+        .hex()
+        .length(24)
+        .message('please fill id in proper format'),
       rating: Joi.number().max(5).required(),
     });
     return JoiSchema.validate(user);

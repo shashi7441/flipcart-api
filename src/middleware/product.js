@@ -3,7 +3,10 @@ const Joi = require('joi');
 exports.productValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      createdBy: Joi.string().trim(),
+      createdBy: Joi.string()
+        .hex()
+        .length(24)
+        .message('please fill id in proper format'),
       price: Joi.number().required(),
       highlight: Joi.string().trim(),
       services: Joi.string().required().trim(),

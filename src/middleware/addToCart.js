@@ -3,7 +3,10 @@ const Joi = require('joi');
 exports.addToCartValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      ProductId: Joi.string().trim(),
+      ProductId: Joi.string()
+        .hex()
+        .length(24)
+        .message('please fill id in proper format'),
       quantity: Joi.number(),
       products: Joi.array().required(),
     });

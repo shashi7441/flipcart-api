@@ -6,8 +6,8 @@ const {
   showCategory,
   deleteCategory,
   updateCategory,
-} = require('../controller/categoryController');
-const { categoryValidation } = require('../middleware/category');
+} = require('../controller');
+const { categoryValidation } = require('../middleware');
 const { multiRoleCheack } = require('../utility/role');
 const { sellerTokenVarify } = require('../service/adminService');
 const { fileAndBodyAccept } = require('../utility/multer');

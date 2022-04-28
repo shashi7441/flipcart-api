@@ -2,11 +2,8 @@ const express = require('express');
 
 const sellerProfileRoutes = express.Router();
 
-const {
-  sellerProfileCreate,
-  sellerProfileUpdate,
-} = require('../controller/sellerProfileController');
-const { sellerProfileValidation } = require('../middleware/seller');
+const { sellerProfileCreate, sellerProfileUpdate } = require('../controller');
+const { sellerProfileValidation } = require('../middleware');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
 const s1 = 'seller';

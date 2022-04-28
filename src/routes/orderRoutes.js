@@ -8,15 +8,14 @@ const {
   showAllOrder,
   stateChange,
   deliverProduct,
-  changeDate
-
-} = require('../controller/orderController');
-const { orderValidation } = require('../middleware/orderMiddleware');
+  changeDate,
+} = require('../controller');
+const { orderValidation } = require('../middleware');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
 const a1 = 'admin';
-const s1 = "seller";
-const u1 = "user"
+const s1 = 'seller';
+const u1 = 'user';
 orderRoutes.post(
   '/order',
   sellerTokenVarify,
@@ -44,9 +43,18 @@ orderRoutes.get(
   multiRoleCheack(u1),
   showOneOrder
 );
-orderRoutes.patch('/order/deliver/:id', sellerTokenVarify, multiRoleCheack(a1), deliverProduct)
+orderRoutes.patch(
+  '/order/deliver/:id',
+  sellerTokenVarify,
+  multiRoleCheack(a1),
+  deliverProduct
+);
 
-orderRoutes.patch('/order/:date' , sellerTokenVarify, multiRoleCheack(u1), changeDate )
-
+orderRoutes.patch(
+  '/order/:date',
+  sellerTokenVarify,
+  multiRoleCheack(u1),
+  changeDate
+);
 
 module.exports = orderRoutes;

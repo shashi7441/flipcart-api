@@ -2,16 +2,16 @@ const express = require('express');
 
 const cartRoutes = express.Router();
 
-const { addToCartValidation } = require('../middleware/addToCart');
+const { addToCartValidation } = require('../middleware');
 const { sellerTokenVarify } = require('../service/adminService');
 const { multiRoleCheack } = require('../utility/role');
 const {
   addToCart,
-  deleteCart,
   allCart,
   incrementAndDecrement,
-  deleteAllCart,
-} = require('../controller/addTOCartController');
+  deleteOneItemInCart,
+  deleteAllItemInCart,
+} = require('../controller');
 
 const u1 = 'user';
 
@@ -45,31 +45,6 @@ cartRoutes.post(
   multiRoleCheack(u1),
   addToCartValidation,
   addToCart
-);
-/**
- * /api/cart/:id:
- *  delete:
- *      summary: remove from cart
- *      tags: [Cart]
- *      parameters:
- *          - in : path
- *            name: id
- *            schema:
- *              type: string
- *              description: enter the id of product you want to remove
- *      responses:
- *          200:
- *              description: product deleted successfull
- *
- *          404:
- *              description : data doesnt found
- */
-
-cartRoutes.delete(
-  '/user/cart/:id',
-  sellerTokenVarify,
-  multiRoleCheack(u1),
-  deleteCart
 );
 
 /**
@@ -118,10 +93,17 @@ cartRoutes.put(
 cartRoutes.get('/user/cart', sellerTokenVarify, multiRoleCheack(u1), allCart);
 
 cartRoutes.delete(
+  '/user/cart/:id',
+  sellerTokenVarify,
+  multiRoleCheack(u1),
+  deleteOneItemInCart
+);
+
+cartRoutes.delete(
   '/user/cart',
   sellerTokenVarify,
   multiRoleCheack(u1),
-  deleteAllCart
+  deleteAllItemInCart
 );
 
 module.exports = cartRoutes;

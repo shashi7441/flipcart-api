@@ -4,7 +4,8 @@ const Product = require('../models/product');
 const Address = require('../models/address');
 const { sendMailToOrder } = require('../utility/mailSendOrder');
 const { acceptData } = require('../utility/pdfGenerator');
-exports.order = async (req, res) => {
+const { Apierror } = require('../utility/error');
+exports.order = async (req, res, next) => {
   try {
     const {
       userId,
@@ -23,17 +24,11 @@ exports.order = async (req, res) => {
     });
     const userData = await User.findOne({ _id: req.id });
     if (!addressData) {
-      return res.json({
-        statusCode: 400,
-        message: 'address not found',
-      });
+      return next(new Apierror('address not found', 400));
     }
 
     if (!userData) {
-      return res.json({
-        statusCode: 400,
-        message: 'userData not found',
-      });
+      return next(new Apierror('userData not found', 400));
     }
 
     let totalAmount = 0;
@@ -41,36 +36,26 @@ exports.order = async (req, res) => {
     for (const i of orders) {
       const productData = await Product.findOne({ _id: i.productId });
       if (!productData) {
-        return res.json({
-          statusCode: 400,
-          message: 'product not found',
-        });
+        return next(new Apierror('product not found', 400));
       }
 
       if (productData.isApprovedbyAdmin == false) {
-        return res.json({
-          statusCode: 400,
-          message: `${productData.title} is not approved by admin so not sell`,
-        });
+        return next(
+          new Apierror(
+            `${productData.title} is not approved by admin so not sell`,
+            400
+          )
+        );
       }
       if (productData.isAvailable == false) {
-        return res.json({
-          statusCode: 400,
-          message: `${productData.title} is not available`,
-        });
+        return next(new Apierror(`${productData.title} is not available`, 400));
       }
       if (productData.quantity < i.quantity) {
-        return res.json({
-          statusCode: 400,
-          message: `${productData.title} is out of stock`,
-        });
+        return next(new Apierror(`${productData.title} is out of stock`, 400));
       }
       if (paymentMode) {
         if (productData.paymentMode != paymentMode) {
-          return res.json({
-            statusCode: 400,
-            message: `${paymentMode} is not available`,
-          });
+          return next(new Apierror(`${paymentMode} is not available`, 400));
         }
       }
       const productPrice = productData.price * i.quantity;
@@ -104,7 +89,7 @@ exports.order = async (req, res) => {
           }
         }
         acceptData(result);
-        await sendMailToOrder(req, res, result);
+        // await sendMailToOrder(req, res, result);
         return res.json({
           statusCode: 200,
           message: 'order placed successfull',
@@ -172,41 +157,41 @@ exports.order = async (req, res) => {
   }
 };
 
-exports.cancelOrder = async (req, res) => {
+exports.cancelOrder = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const orderData = await Order.findOne({ _id: _id });
     if (!orderData) {
-      return res.json({
-        statusCode: 400,
-        message: 'data not found',
-      });
+      return next(new Apierror('data not found', 400));
     }
     if (orderData.status == 'ordered') {
+      const found = orderData.orders;
+      for (let element of found) {
+        let productData = await Product.findOne({ _id: element.productId });
+        let userQuantity = element.quantity;
+        productData.quantity += userQuantity;
+        await productData.save();
+      }
+
       const data = await Order.updateOne(
         { _id },
-        { status: 'cancelled' },
+        { status: 'cancelled', isActive: false },
         { new: true }
       );
-      
+      const result = await Order.findOne({ _id: _id });
 
       return res.json({
         statusCode: 200,
         message: 'order cancelled successfully',
-        data: orderData,
+        data: result,
       });
     } else if (orderData.status == 'cancelled') {
-      return res.json({
-        statusCode: 400,
-        message: 'order are already cancelled',
-      });
+      return next(new Apierror('order are already cancelled', 400));
     } else {
-      return res.json({
-        statusCode: 400,
-        message: 'order are not cancelled',
-      });
+      return next(new Apierror('order are not cancelled', 400));
     }
   } catch (e) {
+    console.log(e);
     return res.json({
       statusCode: 400,
       message: e.message,
@@ -214,7 +199,7 @@ exports.cancelOrder = async (req, res) => {
   }
 };
 
-exports.showOneOrder = async (req, res) => {
+exports.showOneOrder = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const orderFound = await Order.findOne({ _id, userId: req.id })
@@ -224,10 +209,7 @@ exports.showOneOrder = async (req, res) => {
 
     console.log(orderFound);
     if (!orderFound) {
-      return res.json({
-        statusCode: 400,
-        message: 'data not found ',
-      });
+      return next(new Apierror('data not found ', 400));
     }
     return res.json({
       statusCode: 200,
@@ -241,33 +223,24 @@ exports.showOneOrder = async (req, res) => {
   }
 };
 
-exports.stateChange = async (req, res) => {
+exports.stateChange = async (req, res, next) => {
   try {
     const _id = req.params.id;
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode: 400,
-        message: ' please fill the field status',
-      });
+      return next(new Apierror(' please fill the field status', 400));
     }
     const status = req.body.status;
     if (!['shipped', 'dispatch'].includes(status)) {
-      return res.json({
-        statusCode: 400,
-        message: 'status only have shipped and dispatch',
-      });
+      return next(new Apierror('status only have shipped and dispatch', 400));
     }
 
-    const orderFound = await Order.findOne({ _id });
+    const orderFound = await Order.findOne({ _id: _id, isActive: true });
     if (!orderFound) {
-      return res.json({
-        statusCode: 400,
-        message: 'order not found ',
-      });
+      return next(new Apierror('order not found ', 400));
     }
     const result = await Order.findByIdAndUpdate(
       { _id: _id },
-      { status: req.body.status },
+      { status: status },
       { new: true }
     );
     return res.json({
@@ -283,15 +256,12 @@ exports.stateChange = async (req, res) => {
   }
 };
 
-exports.deliverProduct = async (req, res) => {
+exports.deliverProduct = async (req, res, next) => {
   try {
     const _id = req.params.id;
-    const orderData = await Order.findOne({ _id: _id });
+    const orderData = await Order.findOne({ _id: _id, isActive: true });
     if (!orderData) {
-      return res.json({
-        statusCode: 400,
-        message: 'order not found ',
-      });
+      return next(new Apierror('order not found ', 400));
     }
     if (orderData.status == 'ordered') {
       const updateData = await Order.updateOne(
@@ -306,10 +276,7 @@ exports.deliverProduct = async (req, res) => {
         data: updateData,
       });
     } else {
-      return res.json({
-        success: 400,
-        message: 'wrong data',
-      });
+      return next(new Apierror('wrong data', 400));
     }
   } catch (e) {
     return res.json({
@@ -319,14 +286,14 @@ exports.deliverProduct = async (req, res) => {
   }
 };
 
-exports.changeDate = async (req, res) => {
+exports.changeDate = async (req, res, next) => {
   try {
     const date = req.params.date;
     const nextDate = new Date(+new Date() + 1 * 24 * 60 * 60 * 1000);
     if (date === 'fastDeliveryDate') {
       const fastDeliveryCharge = 40;
       const updateData = await Order.findOneAndUpdate(
-        { userId: req.id },
+        { userId: req.id, isActive: true },
         {
           fastDeliverTime: nextDate,
           standardDeliveryTime: null,
@@ -339,6 +306,10 @@ exports.changeDate = async (req, res) => {
           'addressId',
           'country state city streat pincode landMark houseNumber'
         );
+      if (!updateData) {
+        return next(new Apierror('no order found', 400));
+      }
+
       const totalAmountWithCharges =
         updateData.totalPrice + updateData.fastDeliveryCharge;
       updateData.totalPriceWithFastDeliveryCharge = totalAmountWithCharges;
@@ -353,7 +324,7 @@ exports.changeDate = async (req, res) => {
       });
     } else if (date === 'standardDeliveryDate') {
       const orderData = await Order.findOneAndUpdate(
-        { userId: req.id },
+        { userId: req.id, isActive: true },
         {
           fastDeliverTime: null,
           fastDeliveryCharge: null,
@@ -369,16 +340,16 @@ exports.changeDate = async (req, res) => {
           'addressId',
           'country state city streat pincode landMark houseNumber'
         );
+      if (!orderData) {
+        return next(new Apierror('no order found', 400));
+      }
 
       return res.json({
         statusCode: 200,
         data: orderData,
       });
     } else {
-      return res.json({
-        statusCode: 400,
-        message: 'wrong data select',
-      });
+      return next(new Apierror('wrong data select', 400));
     }
   } catch (e) {
     console.log(e);

@@ -8,15 +8,21 @@ exports.productValidation = (req, res, next) => {
         .length(24)
         .message('please fill id in proper format'),
       price: Joi.number().required(),
-      highlight: Joi.string().trim(),
-      services: Joi.string().required().trim(),
-      availableOffer: Joi.string().trim(),
-      color: Joi.string().trim(),
+      highlight: Joi.string().trim().min(4).max(50),
+      services: Joi.string().required().trim().min(5).max(50),
+      availableOffer: Joi.string().trim().min(5).max(30),
+      color: Joi.string().trim().min(3).max(15),
       image: Joi.string().trim(),
-      categoryId: Joi.string().trim().required(),
-      brandId: Joi.string().required().trim(),
+      categoryId: Joi.string()
+      .hex()
+      .length(24)
+      .message('please fill id in proper format'),
+      brandId: Joi.string()
+      .hex()
+      .length(24)
+      .message('please fill id in proper format'),
       size: Joi.number(),
-      title: Joi.string().required().min(5).trim(),
+      title: Joi.string().required().min(5).trim().max(50),
       rating: Joi.number(),
       isAvailable: Joi.boolean(),
       quantity: Joi.number().required(),

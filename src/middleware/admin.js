@@ -12,9 +12,11 @@ exports.adminSignupValidation = (req, res, next) => {
         .required(),
       password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
-        .length(6)
+        .min(6)
+        .max(20)
         .required()
-        .trim(),
+        .trim()
+        .message('please fill password will bi proper format'),
       fullName: Joi.string().min(3).max(30).trim(),
     });
     return JoiSchema.validate(user);

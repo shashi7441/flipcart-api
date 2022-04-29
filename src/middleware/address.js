@@ -2,20 +2,19 @@ const Joi = require('joi');
 
 exports.adressValidation = (req, res, next) => {
   const addressValidate = (user) => {
-    // console.log("addressValidate");
     const JoiSchema = Joi.object({
       userId: Joi.string()
         .hex()
         .length(24)
         .message('please fill id in proper format'),
-      country: Joi.string().required().trim().min(3),
-      state: Joi.string().required().trim().min(5),
-      city: Joi.string().required().trim().min(3),
-      streat: Joi.string().max(500).trim().min(3),
-      pincode: Joi.number().min(6).required(),
-      landMark: Joi.string().trim(),
-      houseNo: Joi.string().trim().required(),
-      addressType: Joi.string().trim().required(),
+      country: Joi.string().required().trim().min(3).max(30),
+      state: Joi.string().required().trim().min(5).max(30),
+      city: Joi.string().required().trim().min(3).max(30),
+      streat: Joi.string().trim().min(3).max(30),
+      pincode: Joi.number().min(6).required().max(30),
+      landMark: Joi.string().trim().max(50).min(3),
+      houseNo: Joi.string().trim().required().min(3).max(20),
+      addressType: Joi.string().trim().required().min(3).max(30),
     });
     return JoiSchema.validate(user);
   };

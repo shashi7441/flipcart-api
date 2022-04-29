@@ -19,32 +19,23 @@ cloudinary.config({
 
 // .........................................under Construction.............................
 // ..............old code in  shared..........................
-exports.updateBrand = async (req, res) => {
+exports.updateBrand = async (req, res, next) => {
   try {
     const { brand, image } = req.body;
     const _id = req.params.id;
     const data = await Brand.findOne({ _id: _id, isActive: true });
     if (!data) {
-      return res.json({
-        statusCode:400,
-        message: 'brand not found',
-      });
+      return next(new Apierror('brand not found', 400));
     }
     req.brand_Id = data._id;
 
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode:400,
-        message: 'please fill the field',
-      });
+      return next(new Apierror('please fill the field', 400));
     }
 
     if (req.files) {
       if (req.files.length > 1) {
-        return res.json({
-          statusCode:400,
-          message: 'upload only single image',
-        });
+        return next(new Apierror('upload only single image', 400));
       }
     }
 
@@ -69,7 +60,7 @@ exports.updateBrand = async (req, res) => {
               .populate('image', 'image.url')
               .populate('createdBy', 'fullName');
             return res.json({
-              statusCode:200,
+              statusCode: 200,
               message: 'updated successfully',
               data: brandFind,
             });
@@ -91,30 +82,26 @@ exports.updateBrand = async (req, res) => {
           .populate('image', 'image.url')
           .populate('createdBy', 'fullName');
         return res.json({
-          statusCode:200,
+          statusCode: 200,
           message: 'updated successfully',
           data: brandFind,
         });
       }
     }
   } catch (e) {
-    console.log(e);
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
 };
 
-exports.createBrand = async (req, res) => {
+exports.createBrand = async (req, res, next) => {
   const { brand, image } = req.body;
   try {
     if (req.files) {
       if (req.files.length > 1) {
-        return res.json({
-          statusCode:200,
-          message: 'you can upload only one file',
-        });
+        return next(new Apierror('upload only single image', 400));
       }
     }
     if (!req.files.length == 0) {
@@ -129,10 +116,7 @@ exports.createBrand = async (req, res) => {
         });
 
         if (findData) {
-          return res.json({
-            statusCode:400,
-            message: 'brand already exist',
-          });
+          return next(new Apierror('brand already exist', 400));
         }
 
         if (!findData) {
@@ -142,7 +126,7 @@ exports.createBrand = async (req, res) => {
           });
           const result = await createDocument.save();
           return res.json({
-            statusCode:200,
+            statusCode: 200,
             message: 'brand created successful',
             data: result,
           });
@@ -152,10 +136,7 @@ exports.createBrand = async (req, res) => {
           brand: req.body.brand,
         });
         if (findData) {
-          return res.json({
-            statusCode:400,
-            message: 'already exists',
-          });
+          return next(new Apierror(' already exist', 400));
         }
         if (!findData) {
           const createDocument = await Brand({
@@ -172,7 +153,7 @@ exports.createBrand = async (req, res) => {
           req.results.brandId = result._id;
           req.results.save();
           return res.json({
-            statusCode:200,
+            statusCode: 200,
             message: 'brand created successful',
             data: brandFind,
           });
@@ -181,13 +162,13 @@ exports.createBrand = async (req, res) => {
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
 };
 
-exports.showBrand = async (req, res) => {
+exports.showBrand = async (req, res, next) => {
   try {
     const { page = 1, limit = 5 } = req.query;
     const search = req.query.search;
@@ -201,19 +182,23 @@ exports.showBrand = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('image', 'image.url')
       .populate('createdBy', 'fullName');
+    if (!result) {
+      return next(new Apierror('data not found ', 400));
+    }
+
     return res.json({
-      statusCode:200,
+      statusCode: 200,
       data: result,
     });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }
 };
 
-exports.deleteBrand = async (req, res) => {
+exports.deleteBrand = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const findData = await Brand.findOne({ _id });
@@ -226,18 +211,15 @@ exports.deleteBrand = async (req, res) => {
       findData.image = null;
       findData.save();
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         message: 'brand deleted successfully',
       });
     } else {
-      return res.json({
-        statusCode:400,
-        message: 'brand already deleted',
-      });
+      return next(new Apierror('brand already deleted', 400));
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }

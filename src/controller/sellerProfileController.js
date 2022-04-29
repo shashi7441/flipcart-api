@@ -1,28 +1,25 @@
 const Sellerprofile = require('../models/sellerPrfile');
 const User = require('../models/user');
-
-exports.getProfile = async (req, res) => {
+const { Apierror } = require('../utility/error');
+exports.getProfile = async (req, res ,next) => {
   try {
     const data = await Sellerprofile.findOne({ _id: _id });
     if (!data) {
-      return res.send({
-        statusCode:400,
-        message: 'data not found',
-      });
+      return next(new Apierror('data not found', 400));
     } else {
-    return  res.send({
-      statusCode:200,
+      return res.send({
+        statusCode: 200,
         data: data,
       });
     }
   } catch (e) {
-   return res.json({
-    statusCode:400,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }
 };
-exports.sellerProfileCreate = async (req, res) => {
+exports.sellerProfileCreate = async (req, res, next) => {
   try {
     const data = await Sellerprofile.findOne({
       sellerId: req.body.sellerId,
@@ -32,54 +29,48 @@ exports.sellerProfileCreate = async (req, res) => {
       'sellerId',
       'fullName'
     );
+    if (!sellerData) {
+      return next(new Apierror('seller not found', 400));
+    }
+    if (!sellerData.role === 'seller') {
+      return next(new Apierror('you are not seller', 400));
+    }
+
+    if (data) {
+      return next(new Apierror('profile already created', 400));
+    }
+
     if (!data) {
-      if (sellerData) {
-        if (sellerData.role === 'seller') {
-          req.body.isKyc = true;
-          const create = await Sellerprofile(req.body);
-          const result = await create.save();
-          return res.json({
-            statusCode:200,
-            message: 'profile created successfuly',
-            data: result,
-          });
-        } else {
-          return res.json({
-            statusCode:400,
-            message: 'you are not seller',
-          });
-        }
-      } else {
-      return  res.json({
-        statusCode:400,
-          message: 'seller not found',
-        });
-      }
-    } else {
-    return  res.json({
-      statusCode:400,
-        message: 'profile already created',
+      req.body.isKyc = true;
+      const create = await Sellerprofile(req.body);
+      const result = await create.save();
+      return res.json({
+        statusCode: 200,
+        message: 'profile created successfuly',
+        data: result,
       });
     }
   } catch (e) {
-     return    res.json({
-      statusCode:400,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }
 };
 
-exports.sellerProfileUpdate = async (req, res) => {
+exports.sellerProfileUpdate = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const data = await Sellerprofile.findOne({ _id: _id });
     const seller = await User.findOne({ _id: req.body.sellerId });
-    console.log('seller', seller);
     if (Object.entries(req.body).length == 0) {
-     return  res.json({
-      statusCode:400,
-        message: ' please fill the field',
-      });
+      return next(new Apierror(' please fill the field', 400));
+    }
+    if (!data) {
+      return next(new Apierror('data not found', 400));
+    }
+    if (!seller) {
+      return next(new Apierror('seller not found', 400));
     }
     if (req.body.fullName) {
       console.log('fulllnamerdsg', req.body.fullName);
@@ -94,20 +85,15 @@ exports.sellerProfileUpdate = async (req, res) => {
       });
       const data = await Sellerprofile.findOne({ _id: _id });
 
-     return res.json({
-      statusCode:200,
+      return res.json({
+        statusCode: 200,
         message: 'profile update successfully',
         data: data,
       });
-    } else {
-     return res.json({
-      statusCode:400,
-        message: 'data not found',
-      });
     }
   } catch (e) {
-   return res.json({
-    statusCode:400,
+    return res.json({
+      statusCode: 400,
       data: e.message,
     });
   }

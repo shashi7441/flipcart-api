@@ -1,13 +1,11 @@
-const {
-  LocalPage,
-} = require('twilio/lib/rest/api/v2010/account/availablePhoneNumber/local');
 const Cart = require('../models/addTOCart');
 const Product = require('../models/product');
+const { Apierror } = require('../utility/error');
 // ....................... on the day....................
 //  1. in increment fixing bug when price is more than 500
 //
 
-exports.addToCart = async (req, res) => {
+exports.addToCart = async (req, res, next) => {
   try {
     const {
       productId,
@@ -26,51 +24,43 @@ exports.addToCart = async (req, res) => {
         .populate('categoryId', 'category')
         .populate('brandId', 'brand');
       if (!productData) {
-        return res.json({
-          statusCode: 400,
-          message: 'product not found',
-        });
+        return next(new Apierror('product not found', 400));
       }
-      console.log('element', element);
 
       if (element.quantity <= 0) {
-        return res.json({
-          statusCode: 400,
-          message: 'please fill valid quantity',
-        });
+        return next(new Apierror('please fill valid quantity', 400));
       }
 
       if (cartData) {
         const iteratorData = cartData.products;
         for (let i of iteratorData) {
           if (i.productId == element.productId) {
-            console.log(element.productId);
-            return res.status(400).json({
-              statusCode: 400,
-              message: `${element.productId} already in cart`,
-            });
+            return next(
+              new Apierror(`${element.productId} already in cart`, 400)
+            );
           }
         }
       }
 
       if (productData.isApprovedbyAdmin == false) {
-        return res.json({
-          statusCode: 400,
-          message: `${productData.title} is not approved by admin so not sell`,
-        });
+        return next(
+          new Apierror(
+            `${productData.title} is not approved by admin so not sell`,
+            400
+          )
+        );
       }
       if (productData.isAvailable == false) {
-        return res.json({
-          statusCode: 400,
-          message: `${productData.title} is not available`,
-        });
+        return next(
+          new Apierror(
+            `${productData.title} is not approved by admin so not sell`,
+            400
+          )
+        );
       }
 
       if (productData.quantity < element.quantity) {
-        return res.json({
-          statusCode: 400,
-          message: `${productData.title} is out of stock`,
-        });
+        return next(new Apierror(`${productData.title} is out of stock`, 400));
       }
 
       productArray.push({
@@ -141,7 +131,7 @@ exports.addToCart = async (req, res) => {
           const productData = await Product.findOne({ _id: i.productId });
           if (productData.quantity > 0) {
             productData.quantity -= i.quantity;
-            productData.save();
+           await productData.save();
           }
         }
         return res.json({
@@ -162,29 +152,20 @@ exports.addToCart = async (req, res) => {
   }
 };
 
-exports.incrementAndDecrement = async (req, res) => {
+exports.incrementAndDecrement = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const value = req.query.value;
     let cartData = await Cart.findOne({ createdBy: req.id });
     let found = cartData.products.find((element) => element.id === _id);
     if (!found) {
-      return res.json({
-        statusCode: 400,
-        message: 'product not found in your cart',
-      });
+      return next(new Apierror('product not found in your cart', 400));
     }
     if (!cartData) {
-      return res.json({
-        statusCode: 400,
-        message: 'data not found',
-      });
+      return next(new Apierror('data not found', 400));
     }
     if (!['increment', 'decrement'].includes(value)) {
-      return res.json({
-        statusCode: 400,
-        message: 'wrong entry',
-      });
+      return next(new Apierror('wrong entry', 400));
     }
 
     if (value == 'increment') {
@@ -226,7 +207,6 @@ exports.incrementAndDecrement = async (req, res) => {
                 },
               });
             } else {
-              console.log('hiiii');
               const updateCart = await Cart.updateOne(
                 { createdBy: req.id },
                 { totalPrice: cartPrice },
@@ -253,14 +233,9 @@ exports.incrementAndDecrement = async (req, res) => {
             .populate('image', 'image.url');
           if (found.quantity > 0) {
             if (found.quantity > 0) {
-              console.log('...,,,,,,,,,,,', found.quantity);
               found.quantity -= 1;
               const updateQuantity = found.quantity;
-              console.log('updateQuantity', updateQuantity);
-              return res.json({
-                statusCode: 400,
-                message: `quantity is not be less than ${found.quantity}`,
-              });
+              return next(new Apierror('quantity is not be less than 1', 400));
             }
             await cartData.save();
             productData.quantity += 1;
@@ -343,7 +318,9 @@ exports.incrementAndDecrement = async (req, res) => {
 exports.allCart = async (req, res, next) => {
   try {
     const allCart = await Cart.find({ createdBy: req.id });
-
+    if (!allCart) {
+      return next(new Apierror('item not found', 400));
+    }
     return res.json({
       success: true,
       status: 200,
@@ -358,17 +335,14 @@ exports.allCart = async (req, res, next) => {
   }
 };
 
-exports.deleteOneItemInCart = async (req, res) => {
+exports.deleteOneItemInCart = async (req, res, next) => {
   try {
     const _id = req.params.id;
     console.log(req.userData._id);
     const cartData = await Cart.findOne({ createdBy: req.userData._id });
     let found = cartData.products.find((element) => element.id === _id);
     if (!found) {
-      return res.json({
-        statusCode: 400,
-        message: 'product not found in cart',
-      });
+      return next(new Apierror('product not found in cart', 400));
     }
     if (found) {
       const productData = await Product.findOne({ _id: found.productId });
@@ -392,7 +366,7 @@ exports.deleteOneItemInCart = async (req, res) => {
       );
       const result = await Cart.findOne({ createdBy: req.userData._id });
       return res.json({
-        statusCode: 400,
+        statusCode: 200,
         message: 'delete product in cart successfully',
       });
     }
@@ -404,7 +378,7 @@ exports.deleteOneItemInCart = async (req, res) => {
   }
 };
 
-exports.deleteAllItemInCart = async (req, res) => {
+exports.deleteAllItemInCart = async (req, res, next) => {
   try {
     const _id = req.userData._id;
     const updateData = await Cart.updateMany(
@@ -414,13 +388,10 @@ exports.deleteAllItemInCart = async (req, res) => {
     );
     const actualUpdate = updateData.acknowledged;
     if (actualUpdate == true) {
-      return res.json({
-        statusCode: 400,
-        message: 'already all item delete in cart',
-      });
+      return next(new Apierror('already all item delete in cart', 400));
     }
-    return res.status(400).json({
-      statusCode: 400,
+    return res.status(200).json({
+      statusCode: 200,
       message: 'delete all item in cart',
     });
   } catch (e) {

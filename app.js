@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const logger = require('./src/logger/loggger');
 const port = process.env.PORT;
 const path = require('path');
+const { error } = require('./src/utility/error');
 const app = express();
 const {
   addressRoutes,
@@ -92,6 +93,7 @@ app.use('/api', categoryRoutes);
 app.use('/api', cartRoutes);
 app.use('/api/user', reviewRoutes);
 app.use('/api/*', routeCheck);
+app.use(error);
 
 function getFromEnv(key) {
   if (process.env[key] == undefined) {

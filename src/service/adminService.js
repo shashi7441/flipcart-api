@@ -80,33 +80,6 @@ exports.sendMail = async (req, resultToken) => {
   }
 };
 
-exports.TokenVarify = (req, res, next) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(400).json({
-      message: 'A token is required for authentication',
-      status: 400,
-      success: false,
-    });
-  } else {
-    const authHeader = req.headers.authorization;
-    const bearerToken = authHeader.split(' ');
-    const token = bearerToken[1];
-    jwt.verify(token, process.env.SECRET_KEY, (error, payload) => {
-      if (payload) {
-        req._id = payload._id;
-
-        next();
-      } else {
-        return res.status(400).json({
-          success: false,
-          data: error,
-        });
-      }
-    });
-  }
-};
-
 exports.adminAprovel = async (req, res) => {
   try {
     const id = req.body._id;

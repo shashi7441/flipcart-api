@@ -8,33 +8,25 @@ const {
 } = require('../service/categoryServices');
 
 const Photo = require('../models/image');
+const { Apierror } = require('../utility/error');
 
-exports.updateCategory = async (req, res) => {
+exports.updateCategory = async (req, res, next) => {
   try {
     const { category, image } = req.body;
     const _id = req.params.id;
     const data = await Category.findOne({ _id: _id });
     if (!data) {
-      return res.json({
-        statusCode:400,
-        message: 'category not found',
-      });
+      return next(new Apierror('category not found', 400));
     }
 
     req.category_Id = data._id;
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode:400,
-        message: ' please fill the field',
-      });
+      return next(new Apierror(' please fill the field', 400));
     }
 
     if (req.files) {
       if (req.files.length > 1) {
-        return res.json({
-          statusCode:400,
-          message: 'upload only single image',
-        });
+        return next(new Apierror('upload only single image', 400));
       }
     }
 
@@ -57,7 +49,7 @@ exports.updateCategory = async (req, res) => {
           .populate('image', 'image.url')
           .populate('createdBy', 'fullName');
         return res.json({
-          statusCode:200,
+          statusCode: 200,
           message: 'updated successfully',
           data: categoryFind,
         });
@@ -78,22 +70,20 @@ exports.updateCategory = async (req, res) => {
         .populate('image', 'image.url')
         .populate('createdBy', 'fullName');
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         message: 'updated successfully',
         data: categoryFind,
       });
     }
   } catch (e) {
-    console.log(e);
-
-    res.json({
-      statusCode:400,
+    return res.json({
+      statusCode: 400,
       data: e.message,
     });
   }
 };
 
-exports.createCategory = async (req, res) => {
+exports.createCategory = async (req, res, next) => {
   const { category, image } = req.body;
   try {
     const findData = await Category.findOne({
@@ -101,17 +91,11 @@ exports.createCategory = async (req, res) => {
     });
 
     if (findData) {
-      return res.json({
-        statusCode:400,
-        message: 'already exists',
-      });
+      return next(new Apierror('already exists', 400));
     }
     if (req.files) {
       if (req.files.length > 1) {
-        return res.json({
-          statusCode:400,
-          message: 'you can upload only one file',
-        });
+        return next(new Apierror('you can upload only one file', 400));
       }
       if (!req.files.length == 0) {
         await uploadImagesForCategory(req, res);
@@ -136,7 +120,7 @@ exports.createCategory = async (req, res) => {
             .populate('createdBy', 'fullName');
 
           return res.json({
-            statusCode:200,
+            statusCode: 200,
             message: 'category created successful',
             data: categoryFind,
           });
@@ -160,27 +144,24 @@ exports.createCategory = async (req, res) => {
           req.results.categoryId = result._id;
           req.results.save();
           return res.json({
-            statusCode:200,
+            statusCode: 200,
             message: 'category created successful',
             data: categoryFind,
           });
         } else {
-          return res.json({
-            statusCode:400,
-            message: 'already exists',
-          });
+          return next(new Apierror('already exists', 400));
         }
       }
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
 };
 
-exports.showCategory = async (req, res) => {
+exports.showCategory = async (req, res, next) => {
   try {
     const search = req.query.search;
     const regex = new RegExp(search, 'i');
@@ -193,27 +174,27 @@ exports.showCategory = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('image', 'image.url')
       .populate('createdBy', 'fullName');
+    if (result.length == 0) {
+      return next(new Apierror('data not found', 400));
+    }
 
-    res.json({
-      statusCode:200,
+    return res.json({
+      statusCode: 200,
       data: result,
     });
   } catch (e) {
-    res.json({
-      statusCode:400,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }
 };
-exports.deleteCategory = async (req, res) => {
+exports.deleteCategory = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const findData = await Category.findOne({ _id });
     if (!findData) {
-      return res.json({
-        statusCode:400,
-        message: 'catogory not found',
-      });
+      return next(new Apierror('catogory not found', 400));
     }
 
     console.log(findData.image);
@@ -225,18 +206,15 @@ exports.deleteCategory = async (req, res) => {
       findData.image = null;
       findData.save();
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         message: 'categoty deleted successfully',
       });
     } else {
-      res.json({
-        succes: false,
-        message: 'category already deleted',
-      });
+      return next(new Apierror('category already deleted', 400));
     }
   } catch (e) {
-    res.json({
-      statusCode:400,
+    return res.json({
+      statusCode: 400,
       message: e.message,
     });
   }

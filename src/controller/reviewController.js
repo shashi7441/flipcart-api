@@ -1,6 +1,8 @@
 const Review = require('../models/review');
 const Product = require('../models/product');
+const { Apierror } = require('../utility/error');
 require('dotenv').config();
+// return next(new Apierror('no product found', 400));
 
 exports.addReview = async (req, res) => {
   try {
@@ -11,24 +13,14 @@ exports.addReview = async (req, res) => {
     }).populate('userId', 'fullName');
     const productData = await Product.findOne({ _id: productId });
     if (!productData) {
-      return res.json({
-        success: false,
-        statusCode: 400,
-        message: 'product not found',
-      });
+      return next(new Apierror('product not found', 400));
     }
 
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode: 400,
-        message: ' please fill the field',
-      });
+      return next(new Apierror(' please fill the field', 400));
     }
     if (reviewFound) {
-      return res.json({
-        statusCode: 400,
-        message: 'already commented',
-      });
+      return next(new Apierror('already commented', 400));
     } else {
       const createComment = await Review({
         productId,
@@ -108,15 +100,12 @@ exports.getReviewForUser = async (req, res) => {
   }
 };
 
-exports.deleteReview = async (req, res) => {
+exports.deleteReview = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const reviewData = await Review.findOne({ _id: _id });
     if (!reviewData) {
-      return res.json({
-        statusCode: 400,
-        message: 'data not found',
-      });
+      return next(new Apierror('data not found', 400));
     } else {
       const deleteReview = await Review.findOneAndDelete({ _id: _id });
       return res.json({
@@ -132,23 +121,17 @@ exports.deleteReview = async (req, res) => {
   }
 };
 
-exports.updateReview = async (req, res) => {
+exports.updateReview = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const { productId, comment, rating, title } = req.body;
 
     const reviewData = await Review.findOne({ _id: _id });
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode: 400,
-        message: ' please fill the field',
-      });
+      return next(new Apierror(' please fill the field', 400));
     }
     if (!reviewData) {
-      return res.josn({
-        statusCode: 400,
-        message: 'data not found',
-      });
+      return next(new Apierror('data not found', 400));
     }
   } catch (e) {
     return res.json({

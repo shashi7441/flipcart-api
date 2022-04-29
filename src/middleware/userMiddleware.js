@@ -13,8 +13,10 @@ exports.userSignupValidation = (req, res, next) => {
       password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
         .min(6)
+        .max(20)
         .required()
-        .trim(),
+        .trim()
+        .message('please fill password will be proper format'),
       phone: Joi.string()
         .required()
         .trim()
@@ -46,9 +48,11 @@ exports.userLoginValidation = (req, res, next) => {
         .trim(),
       password: Joi.string()
         .min(6)
+        .max(20)
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
         .required()
-        .trim(),
+        .trim()
+        .message('please fill the password will be proper format'),
       phone: Joi.string()
         .trim()
         .regex(/^(\+91)[789]\d{9}$/)
@@ -73,9 +77,9 @@ exports.otpVerifyValidation = (req, res, next) => {
       phone: Joi.string()
         .trim()
         .required()
-        .message(' please input in this format +917441177893')
-        .regex(/^(\+91)[789]\d{9}$/),
-      otp: Joi.string().required(),
+        .regex(/^(\+91)[789]\d{9}$/)
+        .message(' please input in this format +917441177893'),
+      otp: Joi.string().required().min(6),
     });
     return JoiSchema.validate(user);
   };

@@ -3,7 +3,7 @@ const Joi = require('joi');
 exports.brandValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      brand: Joi.string().trim().required().max(30),
+      brand: Joi.string().trim().required().min(3).max(30),
     });
     return JoiSchema.validate(user);
   };

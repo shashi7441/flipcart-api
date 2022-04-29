@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 require('dotenv').config();
-const notifier = require('notifier');
 const User = require('../models/user');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
@@ -9,17 +8,14 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilio = require('twilio');
 const { htmlTemplate } = require('../utility/mailTemplate');
-const e = require('express');
 //............ Generate crypto token...............
 exports.Crypto_token = () => {
   return crypto.randomBytes(64).toString('hex');
 };
 
 // .............mail send...............
-exports.sendMail = async (req, resultToken, htmlTemplate) => {
+exports.sendMail = async (req, res, resultToken, htmlTemplate) => {
   try {
-    console.log('<><><>>>>>', resultToken);
-    console.log(process.env.MY_MAIL, process.env.MY_PASSWORD);
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -33,7 +29,7 @@ exports.sendMail = async (req, resultToken, htmlTemplate) => {
       subject: 'Verify your mail',
       text: `Hey,it's our link to veriy the account and will going to expire in 10 mins `,
       html: htmlTemplate,
-      // html: `<br><a href="http://127.0.0.1:${process.env.PORT}/auth/seller/verifytoken/${resultToken}">Click Here to Verify </a> `,
+      html: `<br><a href="http://127.0.0.1:${process.env.PORT}/api/auth/seller/verifytoken/${resultToken}">Click Here to Verify </a> `,
       attachments: [
         {
           filename: 'handshake.png',
@@ -42,12 +38,9 @@ exports.sendMail = async (req, resultToken, htmlTemplate) => {
         },
       ],
     };
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        return res.json({
-          statusCode: 400,
-          message: error.message,
-        });
+    transporter.sendMail(mailOptions, function (e, info) {
+      if (e) {
+        console.log('????????????????', e);
       } else {
         console.log('Email sent: ' + info.response);
       }
@@ -63,37 +56,50 @@ exports.sendMail = async (req, resultToken, htmlTemplate) => {
 exports.verifiedEmail = async (req, res) => {
   try {
     const token = req.params.token;
-    console.log('verify token', token);
     const user = await User.findOne({ refreshToken: token });
+    const currentTime = Date.now();
     const finalResult = user.refreshToken;
-    if (token) {
-      if (finalResult === token) {
-        if (user.isVerified == false) {
-          const update = await User.updateOne(
-            { refreshToken: token },
-            { isVerified: true }
-          );
-          console.log('44746><><<?>', update);
-          return res.json({
-            message: 'Email verified successful !! wait for admin approvel',
-            data: update,
-            statusCode: 200,
-          });
-        } else {
-          return res.json({
-            success: false,
-            message: 'already verified',
-          });
-        }
-      } else {
-        res.send('token are not match');
-      }
-    } else {
-      res.send('token not found');
+    if (!token) {
+      return res.json({
+        statusCode: 400,
+        message: 'token not found ',
+      });
     }
+    if (!finalResult === token) {
+      return res.json({
+        statusCode: 400,
+        message: 'token are not match',
+      });
+    }
+    if (!user) {
+      return res.json({
+        success: 400,
+        message: 'user not found',
+      });
+    }
+    if (!user.isVerified == false) {
+      return res.json({
+        success: false,
+        message: 'already verified',
+      });
+    }
+    if (!user.resetTime >= currentTime) {
+      return res.json({
+        statusCode: 400,
+        message: 'your email link will be expire',
+      });
+    }
+    const update = await User.updateOne(
+      { refreshToken: token },
+      { isVerified: true }
+    );
+    return res.json({
+      message: 'Email verified successful !! wait for admin approvel',
+      data: update,
+      statusCode: 200,
+    });
   } catch (e) {
-    res.json({
-      success: false,
+    return res.json({
       statusCode: 400,
       message: e.message,
     });
@@ -107,54 +113,51 @@ exports.verifyOtp = async (req, res) => {
     console.log('my otp is ', otp);
     const user = await User.findOne({ phone: contact });
     const currentTime = Date.now();
-    if (user) {
-      if (user.role === 'seller') {
-        if (user.resetTime >= currentTime) {
-          if (user.otp === otp) {
-            await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
-            res.status(200).json({
-              message:
-                'seller verfified successfull !! wait for admins approval',
-              status: 200,
-              success: true,
-            });
-          } else {
-            res.status(401).json({
-              message: 'invalid otp',
-              status: 401,
-              success: false,
-            });
-          }
-        } else {
-          res.json({
-            success: false,
-            message: 'your otp will be expire',
-          });
-        }
-      } else {
-        res.json({
-          success: false,
-          message: 'you are not seller',
-        });
-      }
-    } else {
-      res.status(404).json({
+    if (!user) {
+      return res.status(400).json({
         message: 'user not found',
         status: 404,
         success: false,
       });
     }
+    if (!user.role === 'seller') {
+      return res.json({
+        success: false,
+        message: 'you are not seller',
+      });
+    }
+
+    if (!user.resetTime >= currentTime) {
+      return res.json({
+        success: false,
+        message: 'your otp will be expire',
+      });
+    }
+    if (user.otp != otp) {
+      return res.status(401).json({
+        message: 'invalid otp',
+        status: 400,
+      });
+    }
+    if (user.otp === otp) {
+      await User.findOneAndUpdate({ phone: contact }, { otp: 'true' });
+      res.status(200).json({
+        message: 'seller verfified successfull !! wait for admins approval',
+        status: 200,
+        success: true,
+      });
+    }
   } catch (e) {
-    console.log(e);
+    return res.json({
+      statusCode: 400,
+      message: e.message,
+    });
   }
 };
 
 exports.otp = async (req, res, result) => {
   try {
     const number = req.body.phone;
-    // console.log('Number in Otp function', number);
-    // console.log('result in otp function', result);
-
     if (number.length === 13 && number.slice(0, 3) === '+91') {
       const client = await new twilio(accountSid, authToken);
       const Otp = otpGenerator.generate(6, {
@@ -175,28 +178,12 @@ exports.otp = async (req, res, result) => {
       );
       return otpUser;
     } else {
-      res.json({
+      return res.json({
         message: "invalid input; try this format '+916598563525' for contact",
       });
     }
   } catch (e) {
-    return res.json({
-      statusCode: 400,
-      message: e.message,
-    });
-  }
-};
-
-exports.sellerPresent = async (req) => {
-  try {
-    if (req.body.email) {
-      const user = await User.findOne({ email: req.body.email });
-      return user;
-    } else {
-      const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
-      return user;
-    }
-  } catch (err) {
+    console.log('>>>>>>>>>>>>>>>>>', e);
     return res.json({
       statusCode: 400,
       message: e.message,
@@ -233,12 +220,20 @@ exports.updatePassword = async (req, res) => {
   const _id = req.params.id;
   console.log(_id);
   try {
+    const userData = await User.findOne({ _id: _id });
+    if (!userData) {
+      return res.json({
+        statusCode: 400,
+        message: 'user not found',
+      });
+    }
     const newPassword = req.body.password;
     // let newPassword = password.toString();
     const bcryptPassword = async (newPassword) => {
       const pass = await bcrypt.hash(newPassword, 10);
       return pass;
     };
+
     const response = await bcryptPassword(newPassword);
     // req.body.password = response;
     const result = await User.updateOne(

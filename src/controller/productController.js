@@ -11,12 +11,12 @@ const {
 const Photo = require('../models/image');
 const { uploadImagesForProduct } = require('../utility/multer');
 const Review = require('../models/review');
-const { page } = require('pdfkit');
+const { Apierror } = require('../utility/error');
 
 // const client = redis.createClient();
 // client.connect();
 
-exports.createProduct = async (req, res) => {
+exports.createProduct = async (req, res, next) => {
   try {
     const randomNumber = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
     const selectDate = new Date(
@@ -39,10 +39,7 @@ exports.createProduct = async (req, res) => {
     } = req.body;
     const productData = await Product.findOne({ title: title });
     if (productData) {
-      return res.json({
-        statusCode: 400,
-        message: 'prooduct already exist ',
-      });
+      return next(new Apierror('prooduct already exist ', 400));
     }
     if (req.files) {
       console.log('1');
@@ -117,10 +114,7 @@ exports.createProduct = async (req, res) => {
             data: produtfind,
           });
         } else {
-          return res.json({
-            statusCode: 400,
-            message: 'product already exist ',
-          });
+          return next(new Apierror('prooduct already exist ', 400));
         }
       }
     }
@@ -132,7 +126,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-exports.getAllProductsForPublic = async (req, res) => {
+exports.getAllProductsForPublic = async (req, res, next) => {
   try {
     const productFind = await Product.find({ isApprovedbyAdmin: true })
       .populate('brandId', 'brand')
@@ -141,10 +135,7 @@ exports.getAllProductsForPublic = async (req, res) => {
       .populate('createdBy', 'fullName');
 
     if (!productFind) {
-      return res.json({
-        statusCode: 400,
-        message: 'product not found',
-      });
+      return next(new Apierror('product not found', 400));
     }
     const _id = productFind._id;
 
@@ -162,18 +153,14 @@ exports.getAllProductsForPublic = async (req, res) => {
   }
 };
 
-exports.getAllProduct = async (req, res) => {
+exports.getAllProduct = async (req, res, next) => {
   try {
     console.log(req.id);
     const userData = await User.findOne({ _id: req.id });
     if (!userData) {
-      return res.json({
-        statusCode: 400,
-        message: 'user not found',
-      });
+      return next(new Apierror('user not found', 400));
     }
 
-    console.log(userData);
     if (userData.role == 'user') {
       console.log('11111111111');
       const productFind = await Product.find({ isApprovedbyAdmin: true })
@@ -183,10 +170,7 @@ exports.getAllProduct = async (req, res) => {
         .populate('createdBy', 'fullName');
 
       if (!productFind) {
-        return res.json({
-          statusCode: 400,
-          message: 'product not found',
-        });
+        return next(new Apierror('product not found', 400));
       }
 
       return res.status(200).json({
@@ -269,22 +253,16 @@ exports.getAllProduct = async (req, res) => {
   }
 };
 
-exports.updateProducts = async (req, res) => {
+exports.updateProducts = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const data = await Product.findOne({ _id, isActive: true });
 
     if (!data) {
-      return res.json({
-        statusCode: 400,
-        message: 'product not found',
-      });
+      return next(new Apierror('product not found', 400));
     }
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode: 400,
-        message: ' please fill the field',
-      });
+      return next(new Apierror(' please fill the field', 400));
     }
     req.product_Id = data._id;
     const {
@@ -359,7 +337,7 @@ exports.updateProducts = async (req, res) => {
   }
 };
 
-exports.deleteProducts = async (req, res) => {
+exports.deleteProducts = async (req, res, next) => {
   try {
     const _id = req.params.id;
     // console.log(_id);
@@ -379,10 +357,7 @@ exports.deleteProducts = async (req, res) => {
       });
     } else {
       // console.log('2222222222222222222222222222222');
-      return res.json({
-        statusCode: 400,
-        message: 'product already deleted',
-      });
+      return next(new Apierror('product already deleted', 400));
     }
   } catch (e) {
     return res.json({
@@ -392,7 +367,7 @@ exports.deleteProducts = async (req, res) => {
   }
 };
 
-exports.showOneProduct = async (req, res) => {
+exports.showOneProduct = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const find = await Product.find({ _id: _id })
@@ -414,7 +389,7 @@ exports.showOneProduct = async (req, res) => {
   }
 };
 
-exports.isApproved = async (req, res) => {
+exports.isApproved = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const productData = await Product.findOne({ _id: _id })
@@ -422,16 +397,10 @@ exports.isApproved = async (req, res) => {
       .populate('brandId', 'brand')
       .populate('categoryId', 'category');
     if (!productData) {
-      return res.json({
-        statusCode: 400,
-        message: 'product not found',
-      });
+      return next(new Apierror('product not found', 400));
     }
     if (productData.isApprovedbyAdmin == true) {
-      return res.json({
-        statusCode: 400,
-        message: 'already approved you can sell product',
-      });
+      return next(new Apierror('already approved you can sell product', 400));
     }
     const updateProduct = await Product.findOneAndUpdate(
       { _id: _id },
@@ -452,7 +421,7 @@ exports.isApproved = async (req, res) => {
   }
 };
 
-exports.showOneProductForPublic = async (req, res) => {
+exports.showOneProductForPublic = async (req, res, next) => {
   try {
     const _id = req.params.id;
     let { page, size } = req.query;
@@ -473,10 +442,7 @@ exports.showOneProductForPublic = async (req, res) => {
       .populate('image', 'image.url')
       .populate('createdBy', 'fullName');
     if (!find) {
-      return res.json({
-        statusCode: 400,
-        message: 'no product found',
-      });
+      return next(new Apierror('no product found', 400));
     }
 
     const reviewData = await Review.find({ productId: find._id })
@@ -493,7 +459,6 @@ exports.showOneProductForPublic = async (req, res) => {
       return b.rating - a.rating;
     });
     if (reviewData.length == 0) {
-      console.log('1');
       return res.json({
         statusCode: 200,
         message: 'product found successfully',

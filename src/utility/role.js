@@ -24,6 +24,12 @@ exports.roleCheack = (roles) => {
 
 exports.multiRoleCheack = (...role) => {
   return async (req, res, next) => {
+    if (!req.userData) {
+      return res.json({
+        statusCode: 400,
+        message: 'user not found',
+      });
+    }
     const roleData = role.includes(req.userData.role);
     if (req.userData) {
       if (roleData) {

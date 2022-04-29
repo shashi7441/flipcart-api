@@ -56,6 +56,10 @@ const orderSchema = mongoose.Schema(
       enum: ['COD', 'netBanking', 'debitCard', 'creditCard'],
       default: 'COD',
     },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

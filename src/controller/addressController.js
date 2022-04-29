@@ -1,8 +1,9 @@
 const Address = require('../models/address');
 const User = require('../models/user');
 const axios = require('axios');
+const { Apierror } = require('../utility/error');
 
-exports.createAddress = async (req, res) => {
+exports.createAddress = async (req, res, next) => {
   try {
     const {
       userId,
@@ -18,10 +19,7 @@ exports.createAddress = async (req, res) => {
     } = req.body;
     const users = await User.findOne({ _id: req.id });
     if (!users) {
-      return res.json({
-        statusCode: 400,
-        message: 'user not found',
-      });
+      return next(new Apierror('user not found', 400));
     }
     // console.log("in", users);
     const address = await Address.findOne({ userId: req.id });
@@ -64,53 +62,48 @@ exports.createAddress = async (req, res) => {
   }
 };
 
-exports.getAddress = async (req, res) => {
+exports.getAddress = async (req, res, next) => {
   try {
     const addressFind = await Address.find({ userId: req.id }).populate(
       'userId',
       'phone fullName'
     );
     console.log(addressFind);
+    if (addressFind.length == 0) {
+      return next(new Apierror('address not found', 400));
+    }
     if (addressFind) {
       return res.json({
-        statusCode:200,
+        statusCode: 200,
         data: addressFind,
-      });
-    } else {
-      return res.json({
-         statusCode:400,
-        message: 'address not found',
       });
     }
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
 };
 
-exports.updateAddress = async (req, res) => {
+exports.updateAddress = async (req, res, next) => {
   try {
     const _id = req.params.id;
     console.log(_id);
     if (Object.entries(req.body).length == 0) {
-      return res.json({
-        statusCode:400,
-        message: ' please fill the field',
-      });
+      return next(new Apierror(' please fill the field', 400));
     }
     const updateData = await Address.findByIdAndUpdate(_id, req.body, {
       new: true,
     });
     console.log(updateData);
     return res.json({
-      statusCode:200,
+      statusCode: 200,
       message: 'address updated successfully',
     });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       data: e.message,
     });
   }
@@ -119,24 +112,29 @@ exports.updateAddress = async (req, res) => {
 exports.deleteData = async (req, res) => {
   try {
     const _id = req.params.id;
-    // console.log(_id);
     const deleteData = await Address.findByIdAndDelete(_id);
-    // console.log(deleteData);
     const results = await Address.find().sort({ createdAt: -1 });
     const updateData = await Address.updateOne(results[0], { isDefault: true });
+    if (!deleteData) {
+      return res.json({
+        statusCode: 400,
+        message: 'data not found',
+      });
+    }
+
     return res.json({
-      statusCode:400,
+      statusCode: 200,
       message: 'deleted successfully',
     });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }
 };
 
-exports.showAllState = async (req, res) => {
+exports.showAllState = async (req, res, next) => {
   try {
     await axios
       .get('https://countriesnow.space/api/v0.1/countries/states')
@@ -160,16 +158,13 @@ exports.showAllState = async (req, res) => {
           }
         }
         if (!country) {
-          return res.json({
-            statusCode:400,
-            message: 'wrong data',
-          });
+          return next(new Apierror('wrong data', 400));
         }
         return res.send(response.data);
       });
   } catch (e) {
     return res.json({
-      statusCode:400,
+      statusCode: 400,
       message: e.message,
     });
   }

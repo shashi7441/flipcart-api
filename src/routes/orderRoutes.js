@@ -5,7 +5,6 @@ const {
   order,
   cancelOrder,
   showOneOrder,
-  showAllOrder,
   stateChange,
   deliverProduct,
   changeDate,

@@ -39,6 +39,7 @@ const u1 = 'user';
  *          404:
  *              description : bad request
  */
+
 cartRoutes.post(
   '/user/cart',
   sellerTokenVarify,

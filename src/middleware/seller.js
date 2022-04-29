@@ -12,9 +12,11 @@ exports.sellerSignupValidation = (req, res, next) => {
         .required(),
       password: Joi.string()
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
-        .length(6)
+        .min(6)
+        .max(20)
         .required()
-        .trim(),
+        .trim()
+        .message('please fill password in proper format'),
       phone: Joi.string()
         .required()
         .trim()
@@ -48,7 +50,8 @@ exports.sellerLoginValidation = (req, res, next) => {
         .min(6)
         .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
         .required()
-        .trim(),
+        .trim()
+        .message('please fill the password will be proper format'),
       phone: Joi.string()
         .trim()
         .regex(/^(\+91)[789]\d{9}$/)
@@ -75,7 +78,7 @@ exports.otpVerifyValidation = (req, res, next) => {
         .required()
         .message(' please input in this format +917441177893')
         .regex(/^(\+91)[789]\d{9}$/),
-      otp: Joi.string().required(),
+      otp: Joi.string().required().min(6),
     });
     return JoiSchema.validate(user);
   };

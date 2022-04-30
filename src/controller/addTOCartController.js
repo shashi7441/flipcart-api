@@ -7,14 +7,7 @@ const { Apierror } = require('../utility/error');
 
 exports.addToCart = async (req, res, next) => {
   try {
-    const {
-      productId,
-      quantity,
-      products,
-      totalPrice,
-      shippingCharge,
-      createdBy,
-    } = req.body;
+    const { products } = req.body;
     const productArray = [];
     let totalAmount = 0;
 
@@ -85,7 +78,7 @@ exports.addToCart = async (req, res, next) => {
         const productData = await Product.findOne({ _id: i.productId });
         if (productData.quantity > 0) {
           productData.quantity -= i.quantity;
-          productData.save();
+          await productData.save();
         }
       }
       const result = await Cart.findOne({ createdBy: req.userData._id });
@@ -108,7 +101,7 @@ exports.addToCart = async (req, res, next) => {
           const productData = await Product.findOne({ _id: i.productId });
           if (productData.quantity > 0) {
             productData.quantity -= i.quantity;
-            productData.save();
+            await productData.save();
           }
         }
         return res.json({
@@ -131,7 +124,7 @@ exports.addToCart = async (req, res, next) => {
           const productData = await Product.findOne({ _id: i.productId });
           if (productData.quantity > 0) {
             productData.quantity -= i.quantity;
-           await productData.save();
+            await productData.save();
           }
         }
         return res.json({
@@ -143,7 +136,6 @@ exports.addToCart = async (req, res, next) => {
       }
     }
   } catch (e) {
-    console.log(e);
     return res.json({
       success: false,
       statusCode: 400,
@@ -265,7 +257,6 @@ exports.incrementAndDecrement = async (req, res, next) => {
       }
     }
   } catch (e) {
-    console.log(e);
     return res.json({
       statusCode: 400,
       message: e.message,
@@ -295,7 +286,6 @@ exports.incrementAndDecrement = async (req, res, next) => {
 //     },
 //   });
 // } else {
-//   console.log('else>>>>>>>>>');
 //   const updateCart = await Cart.updateOne(
 //     { createdBy: req.id },
 //     {
@@ -338,7 +328,6 @@ exports.allCart = async (req, res, next) => {
 exports.deleteOneItemInCart = async (req, res, next) => {
   try {
     const _id = req.params.id;
-    console.log(req.userData._id);
     const cartData = await Cart.findOne({ createdBy: req.userData._id });
     let found = cartData.products.find((element) => element.id === _id);
     if (!found) {
@@ -353,7 +342,6 @@ exports.deleteOneItemInCart = async (req, res, next) => {
       const actualPrice = totalPriceInCart - totalAmount;
 
       const actualproductQuantity = productData.quantity + quantity;
-      // console.log(actualproductQuantity);
       const updateProductQuantity = await Product.updateOne(
         { _id: found.productId },
         { quantity: actualproductQuantity },
@@ -368,6 +356,7 @@ exports.deleteOneItemInCart = async (req, res, next) => {
       return res.json({
         statusCode: 200,
         message: 'delete product in cart successfully',
+        data: result,
       });
     }
   } catch (e) {

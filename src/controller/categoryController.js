@@ -12,7 +12,7 @@ const { Apierror } = require('../utility/error');
 
 exports.updateCategory = async (req, res, next) => {
   try {
-    const { category, image } = req.body;
+    const { category } = req.body;
     const _id = req.params.id;
     const data = await Category.findOne({ _id: _id });
     if (!data) {
@@ -44,7 +44,7 @@ exports.updateCategory = async (req, res, next) => {
           { new: true }
         );
         const categoryFind = await Category.findOne({
-          category: req.body.category,
+          category: category,
         })
           .populate('image', 'image.url')
           .populate('createdBy', 'fullName');
@@ -56,7 +56,6 @@ exports.updateCategory = async (req, res, next) => {
       }
     }
     if (req.body) {
-      const { category } = req.body;
       const result = await Category.findOneAndUpdate(
         { _id: _id },
         {
@@ -84,10 +83,10 @@ exports.updateCategory = async (req, res, next) => {
 };
 
 exports.createCategory = async (req, res, next) => {
-  const { category, image } = req.body;
+  const { category } = req.body;
   try {
     const findData = await Category.findOne({
-      category: req.body.category,
+      category: category,
     });
 
     if (findData) {
@@ -112,7 +111,7 @@ exports.createCategory = async (req, res, next) => {
             category,
             createdBy: req.id,
           });
-          const result = await createDocument.save();
+          await createDocument.save();
           const categoryFind = await Category.findOne({
             category: req.body.category,
           })
@@ -127,7 +126,7 @@ exports.createCategory = async (req, res, next) => {
         }
       } else {
         const findData = await Category.findOne({
-          category: req.body.category,
+          category: category,
         });
         if (!findData) {
           const createDocument = await Category({
@@ -142,7 +141,7 @@ exports.createCategory = async (req, res, next) => {
             .populate('image', 'image.url')
             .populate('createdBy', 'fullName');
           req.results.categoryId = result._id;
-          req.results.save();
+        await  req.results.save();
           return res.json({
             statusCode: 200,
             message: 'category created successful',
@@ -196,8 +195,6 @@ exports.deleteCategory = async (req, res, next) => {
     if (!findData) {
       return next(new Apierror('catogory not found', 400));
     }
-
-    console.log(findData.image);
     if (!findData.isActive == false) {
       const test = findData.image;
       req.deleteImageId = test;

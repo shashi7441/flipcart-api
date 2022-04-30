@@ -16,7 +16,6 @@ exports.Crypto_token = () => {
 
 exports.updatePassword = async (req, res) => {
   const _id = req.params.id;
-  console.log(_id);
   try {
     const userData = await User.findOne({ _id: _id });
     if (!userData) {
@@ -53,8 +52,6 @@ exports.updatePassword = async (req, res) => {
 // .............mail send...............
 exports.sendMail = async (req, res, resultToken, userHtmlTemplate) => {
   try {
-    console.log('<><><>>>>>', resultToken);
-    console.log(process.env.MY_MAIL, process.env.MY_PASSWORD);
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -95,9 +92,8 @@ exports.sendMail = async (req, res, resultToken, userHtmlTemplate) => {
 exports.userVerifiedEmail = async (req, res) => {
   try {
     const token = req.params.token;
-    console.log('verify token', token);
+    const currentTime = Date.now();
     const user = await User.findOne({ refreshToken: token });
-    const finalResult = user.refreshToken;
     if (!user) {
       return res.json({
         statusCode: 400,
@@ -110,12 +106,20 @@ exports.userVerifiedEmail = async (req, res) => {
         message: 'token are not found',
       });
     }
+    const finalResult = user.refreshToken;
     if (!finalResult === token) {
       return res.json({
         statusCode: 400,
         message: 'token are not match',
       });
     }
+    if (user.resetTime <= currentTime) {
+      return res.json({
+        statusCode: 400,
+        message: 'your link is expire',
+      });
+    }
+
     if (!user.isVerified == false) {
       return res.json({
         success: false,
@@ -133,6 +137,7 @@ exports.userVerifiedEmail = async (req, res) => {
       success: true,
     });
   } catch (e) {
+    console.log('<<<<<<<<<<', e);
     return res.json({
       success: false,
       statusCode: 400,
@@ -159,7 +164,7 @@ exports.verifyOtp = async (req, res) => {
         message: 'you are not user',
       });
     }
-    if (!user.resetTime >= currentTime) {
+    if (user.resetTime <= currentTime) {
       return res.json({
         statusCode: 400,
         message: 'your otp will be expire',
@@ -197,8 +202,6 @@ exports.verifyOtp = async (req, res) => {
 exports.otp = async (req, res, result) => {
   try {
     const number = req.body.phone;
-    console.log('Number in Otp function', number);
-    console.log('result in otp function', result);
 
     if (number.length === 13 && number.slice(0, 3) === '+91') {
       const client = await new twilio(accountSid, authToken);
@@ -220,16 +223,9 @@ exports.otp = async (req, res, result) => {
       );
       return otpUser;
     } else {
-      return res.json({
-        message: "invalid input; try this format '+916598563525' for contact",
-        statusCode: 400,
-      });
+      return false;
     }
   } catch (e) {
-    return res.json({
-      success: false,
-      statusCode: 400,
-      message: e.message,
-    });
+    return false;
   }
 };

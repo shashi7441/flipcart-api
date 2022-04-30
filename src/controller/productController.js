@@ -30,7 +30,6 @@ exports.createProduct = async (req, res, next) => {
       services,
       categoryId,
       brandId,
-      image,
       color,
       availableOffer,
       size,
@@ -42,7 +41,6 @@ exports.createProduct = async (req, res, next) => {
       return next(new Apierror('prooduct already exist ', 400));
     }
     if (req.files) {
-      console.log('1');
       if (req.files.length > 0) {
         if (!productData) {
           await uploadImagesForProduct(req, res);
@@ -54,7 +52,6 @@ exports.createProduct = async (req, res, next) => {
     if (req.body) {
       if (!req.results) {
         if (!productData) {
-          console.log('2');
           const createProduct = await Product({
             price,
             categoryId,
@@ -70,7 +67,7 @@ exports.createProduct = async (req, res, next) => {
             deliverTime: req.selectDate,
           });
 
-          const result = await createProduct.save();
+          await createProduct.save();
           const produtfind = await Product.findOne({ title: title })
             .populate('brandId', 'brand')
             .populate('categoryId', 'category')
@@ -83,7 +80,6 @@ exports.createProduct = async (req, res, next) => {
           });
         }
       } else {
-        console.log('3');
         if (!productData) {
           const createProduct = await Product({
             price,
@@ -155,14 +151,12 @@ exports.getAllProductsForPublic = async (req, res, next) => {
 
 exports.getAllProduct = async (req, res, next) => {
   try {
-    console.log(req.id);
     const userData = await User.findOne({ _id: req.id });
     if (!userData) {
       return next(new Apierror('user not found', 400));
     }
 
     if (userData.role == 'user') {
-      console.log('11111111111');
       const productFind = await Product.find({ isApprovedbyAdmin: true })
         .populate('brandId', 'brand')
         .populate('categoryId', 'category')
@@ -180,7 +174,6 @@ exports.getAllProduct = async (req, res, next) => {
         data: productFind,
       });
     } else if (userData.role == 'seller') {
-      console.log('22222222222222222222');
       const search = req.query.search;
       const regex = new RegExp(search, 'i');
 
@@ -203,7 +196,7 @@ exports.getAllProduct = async (req, res, next) => {
           message: 'please enter valid fields',
         });
       } else {
-        const allfields = productFields(req);
+        // const allfields = productFields(req);
         const result = await Product.find({
           $or: [{ title: regex }, { services: regex }],
         })
@@ -224,7 +217,6 @@ exports.getAllProduct = async (req, res, next) => {
         });
       }
     } else {
-      console.log('33333333');
       const find = await Product.find({ isApprovedbyAdmin: false })
         .populate('brandId', 'brand')
         .populate('categoryId', 'category')
@@ -245,7 +237,6 @@ exports.getAllProduct = async (req, res, next) => {
       });
     }
   } catch (e) {
-    console.log(e);
     return res.json({
       statusCode: 400,
       data: e.message,
@@ -340,10 +331,9 @@ exports.updateProducts = async (req, res, next) => {
 exports.deleteProducts = async (req, res, next) => {
   try {
     const _id = req.params.id;
-    // console.log(_id);
+
     const productData = await Product.findOne({ _id });
     if (!productData.isActive == false) {
-      // console.log('1111111111111111111111');
       const test = productData.image;
       req.deleteImageId = test;
       deletePhoto(req, res);
@@ -356,7 +346,6 @@ exports.deleteProducts = async (req, res, next) => {
         data: productData,
       });
     } else {
-      // console.log('2222222222222222222222222222222');
       return next(new Apierror('product already deleted', 400));
     }
   } catch (e) {

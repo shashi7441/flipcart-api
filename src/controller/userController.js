@@ -8,29 +8,36 @@ const { Apierror } = require('../utility/error');
 
 exports.userSignup = async (req, res) => {
   try {
+    const { email, phone, password, fullName } = req.body;
     const find = await User.findOne({
-      email: req.body.email,
-      phone: req.body.phone,
+      email: email,
+      phone: phone,
     });
     if (find) {
       return next(new Apierror(' user already exist', 400));
     }
-
+    const timeAfterTenMinute = Date.now() + 10 * 60000;
     if (!find) {
-      req.body.role = 'user';
-      req.body.isApproved = true;
       const userToken = Crypto_token();
-
       // ........... create User ................
-
-      const createUser = await User(req.body);
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+      const createUser = await User({
+        role: 'user',
+        email: email,
+        phone: phone,
+        password: hash,
+        fullName: fullName,
+        isApproved: true,
+        refreshToken: userToken,
+        resetTime: timeAfterTenMinute,
+      });
       const result = await createUser.save();
-      result.refreshToken = userToken;
       resultToken = result.refreshToken;
-      const fullName = result.fullName;
+      const userName = result.fullName;
       const link = `<br><a href="http://127.0.0.1:${process.env.PORT}/api/auth/user/verifytoken/${resultToken}">Click Here to Verify </a>`;
       if (req.body.email) {
-        sendMail(req, res, resultToken, userHtmlTemplate(link, fullName));
+        sendMail(req, res, resultToken, userHtmlTemplate(link, userName));
       }
       return res.json({
         statusCode: 200,
@@ -48,8 +55,9 @@ exports.userSignup = async (req, res) => {
 //  ...........email login....................
 userEmailLog = async (req, res, next) => {
   try {
+    const { email } = req.body;
     const result = await User.findOne({
-      email: req.body.email,
+      email: email,
     });
     if (!result) {
       return next(new Apierror('user not  found please signup', 400));
@@ -59,18 +67,13 @@ userEmailLog = async (req, res, next) => {
     }
     if (!result.isVerified === true) {
       return next(new Apierror('you are not  verified ', 400));
-
     }
     const passwordMatch = await bcrypt.compare(
       req.body.password,
       result.password
     );
     if (!passwordMatch) {
-      return res.status(409).json({
-        success: false,
-        status: 409,
-        message: 'Enter Correct Password',
-      });
+      return next(new Apierror('Enter Correct Password', 409));
     }
     if (result.email) {
       const jwtToken = await jwt.sign(
@@ -96,8 +99,9 @@ userEmailLog = async (req, res, next) => {
 // ..................phone login.................
 userPhoneLog = async (req, res) => {
   try {
+    const { phone } = req.body;
     const result = await User.findOne({
-      phone: req.body.phone,
+      phone: phone,
       role: 'user',
     });
     if (!result) {
@@ -112,9 +116,12 @@ userPhoneLog = async (req, res) => {
         message: 'you are not user',
       });
     }
+
     if (result.otp === null) {
-      otp(req, res, result);
+      const getOtpResponse = await otp(req, res, result);
+      console.log(getOtpResponse);
     }
+
     if (!result.otp === 'true') {
       return res.status(400).json({
         statusCode: 400,

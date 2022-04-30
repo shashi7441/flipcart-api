@@ -33,7 +33,7 @@ sellerverifyMail = async (users, approvelMailTemplate) => {
 
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        console.log(error);
+      console.log(error);
       } else {
         console.log('Email sent: ' + info.response);
       }
@@ -49,8 +49,8 @@ sellerverifyMail = async (users, approvelMailTemplate) => {
 // .............mail send...............
 exports.sendMail = async (req, resultToken) => {
   try {
-    console.log('<><><>>>>>', resultToken);
-    console.log(process.env.MY_MAIL, process.env.MY_PASSWORD);
+   
+   
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -106,8 +106,6 @@ exports.adminAprovel = async (req, res) => {
           message: `${users.role} ${users.fullName} approved by admin`,
           data: result,
         });
-
-        // console.log('user.isaghhh54477654757874543', result);
         const sellerFullName = users.fullName;
         if (result.acknowledged === true) {
           if (users.email) {

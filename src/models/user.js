@@ -44,16 +44,6 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-userSchema.pre('save', async function (req, res, next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
-    // const time = new Date()
-    this.resetTime = Date.now() + 10 * 60000;
-  }
-  next();
-});
-
 const User = new mongoose.model('User', userSchema);
 
 module.exports = User;

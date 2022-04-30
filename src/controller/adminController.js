@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const { sendMail, fieldsVisible } = require('../service/adminService');
+const { fieldsVisible } = require('../service/adminService');
 require('dotenv').config();
 
 const bcrypt = require('bcrypt');
@@ -8,8 +8,9 @@ const { Apierror } = require('../utility/error');
 
 adminLogin = async (req, res, next) => {
   try {
+    const { email, password } = req.body;
     const result = await User.findOne({
-      email: req.body.email,
+      email: email,
     });
     if (!result) {
       return next(new Apierror('admin not found', 400));
@@ -17,10 +18,7 @@ adminLogin = async (req, res, next) => {
     if (!result.role == 'admin') {
       return next(new Apierror('you are not admin', 400));
     }
-    const passwordMatch = await bcrypt.compare(
-      req.body.password,
-      result.password
-    );
+    const passwordMatch = await bcrypt.compare(password, result.password);
     if (!passwordMatch) {
       return next(new Apierror('Enter Correct Password', 409));
     }
@@ -72,14 +70,21 @@ exports.sellerReject = async (req, res, next) => {
 
 exports.adminSignup = async (req, res) => {
   try {
+    const { fullName, email, password } = req.body;
     const find = await User.findOne({ role: 'admin' });
-    if (find == null) {
-      req.body.role = 'admin';
-      req.body.isVerified = true;
-      req.body.isApproved = true;
-      req.body.otp = undefined;
-      const createUser = await User(req.body);
-      const result = await createUser.save();
+    if (!find) {
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+      const createUser = await User({
+        role: 'admin',
+        isVerified: true,
+        isApproved: true,
+        otp: undefined,
+        password: hash,
+        fullName: fullName,
+        email: email,
+      });
+      await createUser.save();
       return res.json({
         statusCode: 200,
         message: 'admin register successful',
@@ -99,7 +104,6 @@ exports.getAllSeller = async (req, res, next) => {
   try {
     const { page = 1, limit = 5 } = req.query;
     const fields = fieldsVisible(req);
-    // console.log(fields);
     const find = await User.find({ role: 'seller', isApproved: false }, fields)
       .limit(limit)
       .skip((page - 1) * limit)

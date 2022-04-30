@@ -8,6 +8,8 @@ const port = process.env.PORT;
 const path = require('path');
 const { error } = require('./src/utility/error');
 const app = express();
+const cors = require('cors');
+
 const {
   addressRoutes,
   brandRoutes,
@@ -73,6 +75,7 @@ app.use(limiter);
 // })
 
 const specs = swaggerJsDoc(options);
+app.use(cors());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));

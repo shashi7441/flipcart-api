@@ -9,7 +9,7 @@ cloudinary.config({
 
 exports.createCategoryPhoto = async (req, res) => {
   try {
-    // console.log('hiiiiiiiiiiiiiiiiiiiiii', req.singleImage);
+ 
     const create = await Photo({
       image: req.images,
       categoryId: req.categoryId,
@@ -27,15 +27,15 @@ exports.createCategoryPhoto = async (req, res) => {
 
 exports.deleteCategoryPhoto = async (req, res) => {
   try {
-    console.log('hiiiiiiiiiiiiiiiiiiiiiiii');
+   
     const testId = req.deleteImageId;
     let user = await Photo.findOne({ _id: testId });
-    console.log('<<<<<<<<<<<<<,,', user);
+ 
     const data = user.image;
-    console.log('>>>>>>>>>>>>>>>>>>', data);
+ 
 
     data.map(async (i) => {
-      console.log('in id', i.public_id);
+   
       await cloudinary.uploader.destroy(i.public_id);
     });
 
@@ -57,11 +57,11 @@ try{
     categoryId: req.category_Id
   })
   const result = await create.save();
-  console.log('res111111111111111111', result._id);
+ 
   req.photo_id = result._id;
 }
 catch(e){
-console.log("................",e);
+
 return res.json({
   statusCode:400,
   data:e.message
@@ -72,17 +72,16 @@ return res.json({
 
 
 exports.updateCategoryPhoto = async (req, res) => {
-  console.log('shsashifdf');
+ 
 
   const id = req.updateImageId;
   const data = await Photo.findOne({ _id: id });
-  console.log('in update photo', data);
+ 
   const dataImage = data.image;
   dataImage.map(async (i) => {
     await cloudinary.uploader.destroy(i.public_id);
-    // console.log(i.public_id);
   });
-  console.log('>????????????????????', req.files);
+ 
   const urls = [];
   for (let file of req.files) {
     const { path } = file;

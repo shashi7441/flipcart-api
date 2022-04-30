@@ -4,9 +4,9 @@ const Brand = require('../models/brand');
 
 exports.cheackBrandCategory = async (req, res , next) => {
   try {
-    // console.log("branddddddddddddddd");
+   
     const categoryData = await Category.findOne({ _id: req.body.categoryId });
-    // console.log(categoryData);
+ 
     const brandData = await Brand.findOne({ _id: req.body.brandId });
     if (!brandData) {
       return res.json({

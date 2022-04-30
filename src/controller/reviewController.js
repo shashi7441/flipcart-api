@@ -133,6 +133,17 @@ exports.updateReview = async (req, res, next) => {
     if (!reviewData) {
       return next(new Apierror('data not found', 400));
     }
+
+    const updateReview = await Review.findOneAndUpdate(
+      { _id: _id },
+      { productId: productId, comment: comment, rating: rating, title: title },
+      { new: true }
+    );
+    return res.json({
+      statusCode: 200,
+      message: 'updated successfully',
+      data: updateReview,
+    });
   } catch (e) {
     return res.json({
       statusCode: 400,

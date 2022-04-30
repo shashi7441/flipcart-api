@@ -6,7 +6,6 @@ const { Apierror } = require('../utility/error');
 exports.createAddress = async (req, res, next) => {
   try {
     const {
-      userId,
       country,
       state,
       city,
@@ -15,13 +14,11 @@ exports.createAddress = async (req, res, next) => {
       landMark,
       houseNo,
       addressType,
-      isDefault,
     } = req.body;
     const users = await User.findOne({ _id: req.id });
     if (!users) {
       return next(new Apierror('user not found', 400));
     }
-    // console.log("in", users);
     const address = await Address.findOne({ userId: req.id });
     if (!address) {
       req.body.isDefault = true;
@@ -38,20 +35,19 @@ exports.createAddress = async (req, res, next) => {
         streat,
       });
       const result = await createUser.save();
-      // req.addressId = result._id;
-
       return res.json({
         statusCode: 200,
         message: 'Address register successfully',
+        data: result,
       });
     } else {
       req.body.userId = users._id;
       const createUser = await Address(req.body);
       const result = await createUser.save();
-      //   console.log("in addressController", result);
       return res.json({
         statusCode: 200,
         message: 'Address register successfully',
+        data: result,
       });
     }
   } catch (e) {
@@ -68,7 +64,6 @@ exports.getAddress = async (req, res, next) => {
       'userId',
       'phone fullName'
     );
-    console.log(addressFind);
     if (addressFind.length == 0) {
       return next(new Apierror('address not found', 400));
     }
@@ -89,14 +84,14 @@ exports.getAddress = async (req, res, next) => {
 exports.updateAddress = async (req, res, next) => {
   try {
     const _id = req.params.id;
-    console.log(_id);
+
     if (Object.entries(req.body).length == 0) {
       return next(new Apierror(' please fill the field', 400));
     }
     const updateData = await Address.findByIdAndUpdate(_id, req.body, {
       new: true,
     });
-    console.log(updateData);
+
     return res.json({
       statusCode: 200,
       message: 'address updated successfully',
@@ -143,10 +138,10 @@ exports.showAllState = async (req, res, next) => {
           return res.send(response.data);
         }
         const country = req.query.country;
-        // console.log(country);
+
         if (country) {
           const obj = response.data;
-          // console.log('>>>>>>>>>>>>>>>>>>', obj);
+
           var result = Object.entries(obj);
           var result1 = Object.keys(result).map((key) => [result[key]]);
           const arr = result1[2][0][1];

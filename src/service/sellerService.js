@@ -10,7 +10,7 @@ const twilio = require('twilio');
 const { htmlTemplate } = require('../utility/mailTemplate');
 //............ Generate crypto token...............
 exports.Crypto_token = () => {
-  return crypto.randomBytes(64).toString('hex');
+  return crypto.randomBytes(16).toString('hex');
 };
 
 // .............mail send...............
@@ -29,7 +29,6 @@ exports.sendMail = async (req, res, resultToken, htmlTemplate) => {
       subject: 'Verify your mail',
       text: `Hey,it's our link to veriy the account and will going to expire in 10 mins `,
       html: htmlTemplate,
-      html: `<br><a href="http://127.0.0.1:${process.env.PORT}/api/auth/seller/verifytoken/${resultToken}">Click Here to Verify </a> `,
       attachments: [
         {
           filename: 'handshake.png',
@@ -57,36 +56,38 @@ exports.verifiedEmail = async (req, res) => {
   try {
     const token = req.params.token;
     const user = await User.findOne({ refreshToken: token });
-    const currentTime = Date.now();
-    const finalResult = user.refreshToken;
-    if (!token) {
-      return res.json({
-        statusCode: 400,
-        message: 'token not found ',
-      });
-    }
-    if (!finalResult === token) {
-      return res.json({
-        statusCode: 400,
-        message: 'token are not match',
-      });
-    }
     if (!user) {
       return res.json({
         success: 400,
         message: 'user not found',
       });
     }
+    if (!token) {
+      return res.json({
+        statusCode: 400,
+        message: 'token not found ',
+      });
+    }
+    const currentTime = Date.now();
+    const finalResult = user.refreshToken;
+
+    if (!finalResult === token) {
+      return res.json({
+        statusCode: 400,
+        message: 'token are not match',
+      });
+    }
+    if (user.resetTime <= currentTime) {
+      return res.json({
+        statusCode: 400,
+        message: 'your email link will be expire',
+      });
+    }
+
     if (!user.isVerified == false) {
       return res.json({
         success: false,
         message: 'already verified',
-      });
-    }
-    if (!user.resetTime >= currentTime) {
-      return res.json({
-        statusCode: 400,
-        message: 'your email link will be expire',
       });
     }
     const update = await User.updateOne(
@@ -110,7 +111,7 @@ exports.verifyOtp = async (req, res) => {
   try {
     const contact = req.body.phone;
     const otp = req.body.otp;
-    console.log('my otp is ', otp);
+
     const user = await User.findOne({ phone: contact });
     const currentTime = Date.now();
     if (!user) {
@@ -127,7 +128,7 @@ exports.verifyOtp = async (req, res) => {
       });
     }
 
-    if (!user.resetTime >= currentTime) {
+    if (user.resetTime <= currentTime) {
       return res.json({
         success: false,
         message: 'your otp will be expire',
@@ -183,7 +184,6 @@ exports.otp = async (req, res, result) => {
       });
     }
   } catch (e) {
-    console.log('>>>>>>>>>>>>>>>>>', e);
     return res.json({
       statusCode: 400,
       message: e.message,
@@ -218,7 +218,7 @@ mailfunction = async (email, link) => {
 
 exports.updatePassword = async (req, res) => {
   const _id = req.params.id;
-  console.log(_id);
+
   try {
     const userData = await User.findOne({ _id: _id });
     if (!userData) {

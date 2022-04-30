@@ -1,7 +1,7 @@
 const Sellerprofile = require('../models/sellerPrfile');
 const User = require('../models/user');
 const { Apierror } = require('../utility/error');
-exports.getProfile = async (req, res ,next) => {
+exports.getProfile = async (req, res, next) => {
   try {
     const data = await Sellerprofile.findOne({ _id: _id });
     if (!data) {
@@ -21,11 +21,13 @@ exports.getProfile = async (req, res ,next) => {
 };
 exports.sellerProfileCreate = async (req, res, next) => {
   try {
+    const { sellerId, adharCardNumber, panCardNumber, gstNumber } = req.body;
+
     const data = await Sellerprofile.findOne({
-      sellerId: req.body.sellerId,
+      sellerId: sellerId,
     });
 
-    const sellerData = await User.findOne({ _id: req.body.sellerId }).populate(
+    const sellerData = await User.findOne({ _id: sellerId }).populate(
       'sellerId',
       'fullName'
     );
@@ -41,8 +43,13 @@ exports.sellerProfileCreate = async (req, res, next) => {
     }
 
     if (!data) {
-      req.body.isKyc = true;
-      const create = await Sellerprofile(req.body);
+      const create = await Sellerprofile({
+        sellerId: sellerId,
+        adharCardNumber: adharCardNumber,
+        panCardNumber: panCardNumber,
+        gstNumber: gstNumber,
+        isKyc: true,
+      });
       const result = await create.save();
       return res.json({
         statusCode: 200,
@@ -61,8 +68,11 @@ exports.sellerProfileCreate = async (req, res, next) => {
 exports.sellerProfileUpdate = async (req, res, next) => {
   try {
     const _id = req.params.id;
+    const { sellerId, adharCardNumber, panCardNumber, gstNumber, fullName } =
+      req.body;
     const data = await Sellerprofile.findOne({ _id: _id });
-    const seller = await User.findOne({ _id: req.body.sellerId });
+    const seller = await User.findOne({ _id: sellerId });
+
     if (Object.entries(req.body).length == 0) {
       return next(new Apierror(' please fill the field', 400));
     }
@@ -72,17 +82,22 @@ exports.sellerProfileUpdate = async (req, res, next) => {
     if (!seller) {
       return next(new Apierror('seller not found', 400));
     }
-    if (req.body.fullName) {
-      console.log('fulllnamerdsg', req.body.fullName);
+    if (fullName) {
       const userUpdate = await User.updateOne(
         { _id: req.body.sellerId },
         req.body
       );
     }
     if (data) {
-      const updateDocument = await Sellerprofile.updateOne({ _id }, req.body, {
-        new: true,
-      });
+      const updateDocument = await Sellerprofile.updateOne(
+        { _id },
+        {
+          adharCardNumber: adharCardNumber,
+          panCardNumber: panCardNumber,
+          gstNumber: gstNumber,
+        },
+        { new: true }
+      );
       const data = await Sellerprofile.findOne({ _id: _id });
 
       return res.json({

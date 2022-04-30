@@ -77,7 +77,7 @@ exports.updateBrand = async (req, res, next) => {
           { new: true }
         );
         const brandFind = await Brand.findOne({
-          brand: req.body.brand,
+          brand: brand,
         })
           .populate('image', 'image.url')
           .populate('createdBy', 'fullName');
@@ -97,7 +97,7 @@ exports.updateBrand = async (req, res, next) => {
 };
 
 exports.createBrand = async (req, res, next) => {
-  const { brand, image } = req.body;
+  const { brand} = req.body;
   try {
     if (req.files) {
       if (req.files.length > 1) {
@@ -112,7 +112,7 @@ exports.createBrand = async (req, res, next) => {
     if (req.body) {
       if (!req.results) {
         const findData = await Brand.findOne({
-          brand: req.body.brand,
+          brand: brand,
         });
 
         if (findData) {
@@ -202,7 +202,6 @@ exports.deleteBrand = async (req, res, next) => {
   try {
     const _id = req.params.id;
     const findData = await Brand.findOne({ _id });
-    console.log(findData.image);
     if (!findData.isActive == false) {
       const test = findData.image;
       req.deleteImageId = test;

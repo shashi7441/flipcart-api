@@ -26,15 +26,15 @@ exports.createBrandPhoto = async (req, res) => {
 
 exports.deleteBrandPhoto = async (req, res) => {
   try {
-    console.log('hiiiiiiiiiiiiiiiiiiiiiiii');
+   
     const testId = req.deleteImageId;
     let user = await Photo.findOne({ _id: testId });
-    console.log('<<<<<<<<<<<<<,,', user);
+   
     const data = user.image;
-    console.log('>>>>>>>>>>>>>>>>>>', data);
+  
 
     data.map(async (i) => {
-      console.log('in id', i.public_id);
+     
       await cloudinary.uploader.destroy(i.public_id);
     });
 
@@ -54,14 +54,14 @@ exports.createAndUpdateBrandPhoto = async (req, res) => {
       brandId: req.brand_Id,
     });
     const result = await create.save();
-    // console.log('res111111111111111111', result._id);
+  
     req.photo_id = result._id;
   } catch (e) {
     res.json({
       statusCode:400,
       message:e.message
     })
-    console.log('................', e);
+   
   return  res.json({
       success: false,
       statusCode:400,
@@ -88,7 +88,7 @@ exports.updateBrandPhoto = async (req, res) => {
         newPush.public_id = public_id;
         urls.push(newPush);
         req.urls = urls;
-        // console.log(url);
+  
       });
       const updateImage = await Photo.updateOne(
         { _id: id },

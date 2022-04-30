@@ -13,16 +13,24 @@ exports.signup = async (req, res, next) => {
     if (find) {
       return next(new Apierror(`${email} , ${phone}already exist`, 400));
     }
-
+const timeAfterTenMinute = Date.now() + 10 * 60000
     if (!find) {
-      req.body.role = 'seller';
       const token = Crypto_token();
-      const createUser = await User(req.body);
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt) 
+      const createUser = await User({
+        role:'seller',
+        password:hash,
+        fullName:fullName,
+        email:email,
+        phone:phone,
+        refreshToken:token,
+        resetTime : timeAfterTenMinute
+      });
       const result = await createUser.save();
       const fullname = result.fullName;
-      result.refreshToken = token;
       resultToken = result.refreshToken;
-      if (req.body.email) {
+      if (email) {
         const link = `<br><a href="http://127.0.0.1:${process.env.PORT}/api/auth/seller/verifytoken/${resultToken}">Click Here to Verify </a> `;
         await sendMail(req, res, resultToken, htmlTemplate(link, fullname));
       }
@@ -43,8 +51,9 @@ exports.signup = async (req, res, next) => {
 //  ...........email login....................
 sellerEmaillog = async (req, res, next) => {
   try {
+    const{email} = req.body
     const result = await User.findOne({
-      email: req.body.email,
+      email: email,
     });
     if (!result) {
       return next(new Apierror('data not found please signup', 400));
@@ -94,8 +103,9 @@ sellerEmaillog = async (req, res, next) => {
 // ..................phone login.................
 sellerPhoneLog = async (req, res, next) => {
   try {
+    const{phone} = req.body
     const result = await User.findOne({
-      phone: req.body.phone,
+      phone: phone,
       role: 'seller',
     });
     if (!result) {

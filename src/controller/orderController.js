@@ -8,10 +8,7 @@ const { Apierror } = require('../utility/error');
 exports.order = async (req, res, next) => {
   try {
     const {
-      userId,
       orders,
-      deliverTime,
-      expectedDeliverTime,
       addressId,
       paymentMode,
     } = req.body;
@@ -89,7 +86,7 @@ exports.order = async (req, res, next) => {
           }
         }
         acceptData(result);
-        // await sendMailToOrder(req, res, result);
+        await sendMailToOrder(req, res, result);
         return res.json({
           statusCode: 200,
           message: 'order placed successfull',
@@ -149,7 +146,6 @@ exports.order = async (req, res, next) => {
     //   }
     // }
   } catch (e) {
-    console.log(e);
     return res.json({
       statusCode: 400,
       message: e.message,
@@ -191,7 +187,6 @@ exports.cancelOrder = async (req, res, next) => {
       return next(new Apierror('order are not cancelled', 400));
     }
   } catch (e) {
-    console.log(e);
     return res.json({
       statusCode: 400,
       message: e.message,
@@ -206,8 +201,6 @@ exports.showOneOrder = async (req, res, next) => {
       .populate('userId', 'fullName phone')
       .populate('orders.productId', 'price title services')
       .populate('addressId', 'country state city pincode');
-
-    console.log(orderFound);
     if (!orderFound) {
       return next(new Apierror('data not found ', 400));
     }
@@ -352,7 +345,6 @@ exports.changeDate = async (req, res, next) => {
       return next(new Apierror('wrong data select', 400));
     }
   } catch (e) {
-    console.log(e);
     return res.json({
       statusCode: 400,
       message: e.message,
